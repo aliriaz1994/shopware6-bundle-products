@@ -119,7 +119,7 @@
                         <div class="bundle-products-list">
                             <strong class="d-block mb-2">Bundle includes:</strong>
 
-                            {# Current product (the one actually in cart) #}
+                            {# Current product (the one actually in cart) - FIXED: Show individual price #}
                             {% if lineItem.payload.currentProduct is defined %}
                                 <div class="bundle-product-item d-flex justify-content-between align-items-center py-1">
                                     <div class="product-info">
@@ -127,7 +127,15 @@
                                         <span class="badge badge-primary badge-sm ms-2">In Cart</span>
                                     </div>
                                     <div class="product-price">
-                                        {{ lineItem.price.totalPrice|currency }}
+                                        {# FIXED: Show individual product price, not bundle price #}
+                                        {% if lineItem.payload.currentProduct.totalPrice is defined %}
+                                            {{ lineItem.payload.currentProduct.totalPrice|currency }}
+                                        {% elseif lineItem.payload.currentProduct.unitPrice is defined %}
+                                            {{ lineItem.payload.currentProduct.unitPrice|currency }}
+                                        {% else %}
+                                            {# Fallback - calculate from total if needed #}
+                                            {{ (lineItem.payload.originalPrice / lineItem.payload.allProducts|length)|currency }}
+                                        {% endif %}
                                     </div>
                                 </div>
                             {% endif %}
@@ -143,7 +151,7 @@
                                         <span class="badge badge-success badge-sm ms-2">Included</span>
                                     </div>
                                     <div class="product-price text-muted">
-                                        <small><s>{{ product.totalPrice|currency }}</s></small>
+                                        <small>{{ product.totalPrice|currency }}</small>
                                     </div>
                                 </div>
                             {% endfor %}
