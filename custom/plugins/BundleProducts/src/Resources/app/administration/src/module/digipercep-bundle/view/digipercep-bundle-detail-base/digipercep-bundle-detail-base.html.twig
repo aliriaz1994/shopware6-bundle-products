@@ -29,13 +29,6 @@
                     :options="discountTypeOptions">
             </sw-single-select>
 
-            <!-- Display Mode -->
-            <sw-single-select
-                    v-model:value="formData.displayMode"
-                    :label="$tc('digipercep-bundle.detail.base.labelDisplayMode')"
-                    :options="displayModeOptions">
-            </sw-single-select>
-
             <!-- Priority -->
             <sw-number-field
                     v-model:value="formData.priority"
@@ -52,13 +45,6 @@
             <sw-switch-field
                     v-model="formData.active"
                     :label="$tc('digipercep-bundle.detail.base.labelActive')">
-            </sw-switch-field>
-
-            <!-- Selectable -->
-            <sw-switch-field
-                    v-model="formData.isSelectable"
-                    :label="$tc('digipercep-bundle.detail.base.labelSelectable')"
-                    :helpText="$tc('digipercep-bundle.detail.base.helpTextSelectable')">
             </sw-switch-field>
         </sw-container>
     </sw-card>

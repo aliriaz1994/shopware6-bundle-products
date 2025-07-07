@@ -17,7 +17,6 @@ Component.register('digipercep-bundle-create', {
                 discount: 0,
                 discountType: 'percentage',
                 isSelectable: false,
-                displayMode: 'default',
                 priority: 0
             },
             isLoading: false,
@@ -30,13 +29,6 @@ Component.register('digipercep-bundle-create', {
             return [
                 { label: this.$tc('digipercep-bundle.create.optionPercentage'), value: 'percentage' },
                 { label: this.$tc('digipercep-bundle.create.optionAbsolute'), value: 'absolute' }
-            ];
-        },
-
-        displayModeOptions() {
-            return [
-                { label: this.$tc('digipercep-bundle.create.optionDisplayDefault'), value: 'default' },
-                { label: this.$tc('digipercep-bundle.create.optionDisplayPromotionBox'), value: 'promotion_box' }
             ];
         }
     },
@@ -99,7 +91,6 @@ Component.register('digipercep-bundle-create', {
                 discountType: this.formData.discountType,
                 isSelectable: this.formData.isSelectable,
                 active: this.formData.active,
-                displayMode: this.formData.displayMode,
                 priority: parseInt(this.formData.priority) || 0
             };
         },

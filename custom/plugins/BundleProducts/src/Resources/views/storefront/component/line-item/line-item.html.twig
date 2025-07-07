@@ -7,7 +7,6 @@
         {# Set up variables like Shopware does #}
         {% set label = lineItem.label|trans|sw_sanitize %}
         {% set label = label !== '' ? label : lineItem.label %}
-        {% set displayMode = displayMode is defined ? displayMode : 'default' %}
         {% set showRemoveButton = showRemoveButton is defined ? showRemoveButton : true %}
         {% set lineItemClasses = 'line-item bundle-item is-' ~ displayMode %}
         {% set showLineItemModal = controllerAction is same as('confirmPage') %}

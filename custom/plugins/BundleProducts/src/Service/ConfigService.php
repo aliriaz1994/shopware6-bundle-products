@@ -68,12 +68,4 @@ class ConfigService
             $salesChannelId
         );
     }
-
-    public function getDefaultDisplayMode(?string $salesChannelId = null): string
-    {
-        return $this->systemConfigService->getString(
-            self::CONFIG_DOMAIN . 'defaultDisplayMode',
-            $salesChannelId
-        ) ?: 'default';
-    }
 }

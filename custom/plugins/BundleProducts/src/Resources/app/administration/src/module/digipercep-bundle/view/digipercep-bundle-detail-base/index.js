@@ -30,18 +30,5 @@ Component.register('digipercep-bundle-detail-base', {
                 }
             ];
         },
-
-        displayModeOptions() {
-            return [
-                {
-                    label: this.$tc('digipercep-bundle.detail.base.optionDisplayDefault'),
-                    value: 'default'
-                },
-                {
-                    label: this.$tc('digipercep-bundle.detail.base.optionDisplayPromotionBox'),
-                    value: 'promotion_box'
-                }
-            ];
-        }
     }
 });

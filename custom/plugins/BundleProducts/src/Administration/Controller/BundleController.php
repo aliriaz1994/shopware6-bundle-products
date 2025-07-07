@@ -559,7 +559,6 @@ class BundleController extends AbstractController
             'discountType' => in_array($data['discountType'] ?? '', ['percentage', 'absolute']) ? $data['discountType'] : 'percentage',
             'isSelectable' => (bool) ($data['isSelectable'] ?? false),
             'active' => (bool) ($data['active'] ?? true),
-            'displayMode' => in_array($data['displayMode'] ?? '', ['default', 'promotion_box', 'badge', 'modal']) ? $data['displayMode'] : 'default',
             'priority' => max(0, (int) ($data['priority'] ?? 0)),
         ];
     }
@@ -574,7 +573,6 @@ class BundleController extends AbstractController
             'discountType' => fn($value) => in_array($value, ['percentage', 'absolute']) ? $value : 'percentage',
             'isSelectable' => fn($value) => (bool) $value,
             'active' => fn($value) => (bool) $value,
-            'displayMode' => fn($value) => in_array($value, ['default', 'promotion_box', 'badge', 'modal']) ? $value : 'default',
             'priority' => fn($value) => max(0, (int) $value)
         ];
 
@@ -596,7 +594,6 @@ class BundleController extends AbstractController
             'discountType' => $bundle->getDiscountType(),
             'isSelectable' => $bundle->isSelectable(),
             'active' => $bundle->getActive(),
-            'displayMode' => $bundle->getDisplayMode(),
             'priority' => $bundle->getPriority(),
             'createdAt' => $bundle->getCreatedAt()?->format('c'),
             'updatedAt' => $bundle->getUpdatedAt()?->format('c'),

@@ -18,7 +18,6 @@ Component.register('digipercep-bundle-detail', {
                 discountType: 'percentage',
                 isSelectable: false,
                 active: true,
-                displayMode: 'default',
                 priority: 0
             },
             bundleProducts: [],
@@ -78,13 +77,6 @@ Component.register('digipercep-bundle-detail', {
             ];
         },
 
-        displayModeOptions() {
-            return [
-                { label: 'Default', value: 'default' },
-                { label: 'Promotion Box', value: 'promotion_box' }
-            ];
-        },
-
         productColumns() {
             return [
                 {
@@ -126,7 +118,6 @@ Component.register('digipercep-bundle-detail', {
                     discountType: 'percentage',
                     isSelectable: false,
                     active: true,
-                    displayMode: 'default',
                     priority: 0
                 };
                 this.bundleProducts = [];
@@ -145,7 +136,6 @@ Component.register('digipercep-bundle-detail', {
                     discountType: bundle.discountType || 'percentage',
                     isSelectable: Boolean(bundle.isSelectable),
                     active: Boolean(bundle.active),
-                    displayMode: bundle.displayMode || 'default',
                     priority: bundle.priority || 0
                 };
 
@@ -354,7 +344,6 @@ Component.register('digipercep-bundle-detail', {
                     discountType: this.bundle.discountType || 'percentage',
                     isSelectable: Boolean(this.bundle.isSelectable),
                     active: Boolean(this.bundle.active),
-                    displayMode: this.bundle.displayMode || 'default',
                     priority: parseInt(this.bundle.priority) || 0
                 };
 

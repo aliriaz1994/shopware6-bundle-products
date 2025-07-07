@@ -62,9 +62,6 @@ class BundleDefinition extends EntityDefinition
             (new BoolField('active', 'active'))
                 ->addFlags(new ApiAware()),
 
-            (new StringField('display_mode', 'displayMode', 50))
-                ->addFlags(new ApiAware()),
-
             (new IntField('priority', 'priority'))
                 ->addFlags(new ApiAware()),
 

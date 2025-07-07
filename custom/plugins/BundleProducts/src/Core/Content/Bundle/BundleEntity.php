@@ -17,7 +17,6 @@ class BundleEntity extends Entity
     protected string $discountType = 'percentage';
     protected bool $isSelectable = false;
     protected bool $active = true;
-    protected string $displayMode = 'default';
     protected int $priority = 0;
     protected ?BundleProductCollection $bundleProducts = null;
     protected ?ProductBundleCollection $productBundles = null;
@@ -70,16 +69,6 @@ class BundleEntity extends Entity
     public function setActive(bool $active): void
     {
         $this->active = $active;
-    }
-
-    public function getDisplayMode(): string
-    {
-        return $this->displayMode;
-    }
-
-    public function setDisplayMode(string $displayMode): void
-    {
-        $this->displayMode = $displayMode;
     }
 
     public function getPriority(): int

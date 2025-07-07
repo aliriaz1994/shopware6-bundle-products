@@ -21,25 +21,6 @@
             <min>1</min>
             <max>10</max>
         </input-field>
-
-        <input-field type="single-select">
-            <name>defaultDisplayMode</name>
-            <label>Default display mode</label>
-            <label lang="de-DE">Standard Anzeigemodus</label>
-            <options>
-                <option>
-                    <id>default</id>
-                    <name>Default</name>
-                    <name lang="de-DE">Standard</name>
-                </option>
-                <option>
-                    <id>promotion_box</id>
-                    <name>Promotion Box</name>
-                    <name lang="de-DE">Promotion Box</name>
-                </option>
-            </options>
-            <defaultValue>default</defaultValue>
-        </input-field>
     </card>
 
     <card>
