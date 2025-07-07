@@ -1,0 +1,14 @@
+{
+  "digipercep-bundle": {
+    "originalPrice": "Original price",
+    "bundlePrice": "Bundle price",
+    "savings": "You save",
+    "addToCart": "Add bundle to cart",
+    "bundleBadge": "Bundle available",
+    "selectProducts": "Select products",
+    "frequentlyBoughtTogether": "Frequently bought together",
+    "addingToCart": "Adding to cart...",
+    "addedToCart": "Bundle added to cart",
+    "errorAddingToCart": "Error adding bundle to cart"
+  }
+}

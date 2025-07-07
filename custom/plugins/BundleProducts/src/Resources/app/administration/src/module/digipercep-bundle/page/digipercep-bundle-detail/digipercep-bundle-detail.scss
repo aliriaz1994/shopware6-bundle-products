@@ -1,0 +1,52 @@
+.digipercep-bundle-detail {
+  .sw-bundle-detail__save-action {
+    margin-right: 16px;
+  }
+
+  .product-selection-area {
+    margin: 20px 0;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+  }
+
+  .selected-products-preview {
+    margin-top: 15px;
+  }
+
+  .selected-products-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .selected-product-item {
+    display: flex;
+    align-items: center;
+    background: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+
+    span {
+      margin-right: 8px;
+    }
+
+    .sw-button {
+      padding: 2px 6px;
+    }
+  }
+
+  .selected-products-preview .selection-actions {
+    margin-top: 15px;
+
+    .clear-selection-btn {
+      margin-left: 10px;
+    }
+  }
+
+  .bundle-products-list {
+    margin-top: 20px;
+  }
+}

@@ -1,0 +1,194 @@
+
+{% block digipercep_bundle_detail %}
+    <sw-page class="digipercep-bundle-detail">
+        <template #smart-bar-header>
+            <h2>{{ bundle ? bundle.name : 'Bundle' }}</h2>
+        </template>
+
+        <template #smart-bar-actions>
+            <sw-button-process
+                    :isLoading="isLoading"
+                    :processSuccess="isSaveSuccessful"
+                    variant="primary"
+                    @process-finish="saveFinish"
+                    @click="onSave">
+                Save
+            </sw-button-process>
+
+            <sw-button @click="onCancel">
+                Cancel
+            </sw-button>
+        </template>
+
+        <template #content>
+            <sw-card-view>
+                <!-- Bundle Information Card -->
+                <sw-card title="Bundle Information" :isLoading="isLoading">
+                    <sw-container columns="repeat(auto-fit, minmax(250px, 1fr))" gap="0 30px">
+                        <sw-text-field
+                                v-model:value="bundle.name"
+                                label="Bundle Name"
+                                placeholder="Enter bundle name"
+                                required>
+                        </sw-text-field>
+
+                        <sw-number-field
+                                v-model:value="bundle.discount"
+                                label="Discount"
+                                :min="0"
+                                :max="bundle.discountType === 'percentage' ? 100 : null"
+                                :suffix="bundle.discountType === 'percentage' ? '%' : ''"
+                                :step="0.01"
+                                :digits="2">
+                        </sw-number-field>
+
+                        <sw-single-select
+                                v-model:value="bundle.discountType"
+                                label="Discount Type"
+                                :options="discountTypeOptions">
+                        </sw-single-select>
+
+                        <sw-single-select
+                                v-model:value="bundle.displayMode"
+                                label="Display Mode"
+                                :options="displayModeOptions">
+                        </sw-single-select>
+
+                        <sw-number-field
+                                v-model:value="bundle.priority"
+                                label="Priority"
+                                :min="0"
+                                :step="1"
+                                :digits="0">
+                        </sw-number-field>
+                    </sw-container>
+
+                    <sw-container columns="repeat(auto-fit, minmax(250px, 1fr))" gap="0 30px">
+                        <sw-switch-field
+                                v-model="bundle.active"
+                                label="Active">
+                        </sw-switch-field>
+                    </sw-container>
+                </sw-card>
+
+                <!-- Bundle Products Card -->
+                <sw-card title="Bundle Products" :isLoading="isProductsLoading">
+                    <div v-if="!isCreateMode" class="sw-card__content">
+                        <!-- Add Products Section -->
+                        <sw-alert variant="info">
+                            <p>Please select all products that should be offered within the bundle. Depending on the plugin configuration, any duplicate parent product will be automatically removed from the bundle. For variant products, you can select either the parent or a specific variant. If you select the parent, the customer can select a variant.</p>
+                        </sw-alert>
+
+                        <!-- Product Selection Area -->
+                        <div class="product-selection-area">
+                            <!-- Product Selector -->
+                            <sw-entity-single-select
+                                    entity="product"
+                                    v-model:value="selectedProductToAdd"
+                                    label="Select product"
+                                    placeholder="Please select product..."
+                                    :criteria="productCriteria"
+                                    labelProperty="name"
+                                    valueProperty="id"
+                                    @update:value="onProductSelectedFromDropdown">
+                            </sw-entity-single-select>
+
+                            <!-- Selected Products for Adding -->
+                            <div v-if="selectedProductsForAdd.length > 0" class="selected-products-preview">
+                                <h4>Selected Products ({{ selectedProductsForAdd.length }}):</h4>
+                                <div class="selected-products-list">
+                                    <div
+                                            v-for="product in selectedProductsForAdd"
+                                            :key="product.id"
+                                            class="selected-product-item">
+                                        <span>{{ product.name }}</span>
+                                        <sw-button
+                                                size="x-small"
+                                                variant="ghost"
+                                                @click="removeFromSelection(product)">
+                                            ×
+                                        </sw-button>
+                                    </div>
+                                </div>
+
+                                <div class="selection-actions">
+                                    <sw-button
+                                            variant="primary"
+                                            size="small"
+                                            :disabled="isProductsLoading"
+                                            @click="addSelectedProducts">
+                                        Add {{ selectedProductsForAdd.length }} Product(s) to Bundle
+                                    </sw-button>
+                                    <sw-button
+                                            variant="ghost"
+                                            size="small"
+                                            class="clear-selection-btn"
+                                            @click="clearSelection">
+                                        Clear Selection
+                                    </sw-button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Products List -->
+                        <div v-if="bundleProducts && bundleProducts.length > 0" class="bundle-products-list">
+                            <h4>Bundle Products ({{ bundleProducts.length }}):</h4>
+                            <sw-data-grid
+                                    :dataSource="bundleProducts"
+                                    :columns="productColumns"
+                                    :showSelection="false"
+                                    :showActions="true"
+                                    :allowInlineEdit="true"
+                                    :isLoading="isProductsLoading"
+                                    @inline-edit-save="onProductUpdate">
+
+                                <template #column-product="{ item }">
+                                    <div class="product-info">
+                                        <span>{{ item.product ? item.product.name : 'Unknown Product' }}</span>
+                                    </div>
+                                </template>
+
+                                <template #column-productNumber="{ item }">
+                                    <span>{{ item.product ? item.product.productNumber : 'N/A' }}</span>
+                                </template>
+
+                                <template #column-quantity="{ item, isInlineEdit }">
+                                    <sw-number-field
+                                            v-if="isInlineEdit"
+                                            v-model:value="item.quantity"
+                                            :min="1"
+                                            :step="1"
+                                            :digits="0">
+                                    </sw-number-field>
+                                    <span v-else>{{ item.quantity }}</span>
+                                </template>
+
+                                <template #actions="{ item }">
+                                    <sw-context-menu-item
+                                            icon="regular-times-s"
+                                            variant="danger"
+                                            @click="removeProduct(item)">
+                                        Remove
+                                    </sw-context-menu-item>
+                                </template>
+                            </sw-data-grid>
+                        </div>
+
+                        <sw-empty-state
+                                v-else-if="!isProductsLoading"
+                                title="No products added"
+                                icon="default-package-closed"
+                                description="Add products to this bundle using the selector above">
+                        </sw-empty-state>
+                    </div>
+
+                    <div v-else class="sw-card__content">
+                        <sw-alert variant="info">
+                            Please save the bundle first before adding products.
+                        </sw-alert>
+                    </div>
+                </sw-card>
+            </sw-card-view>
+        </template>
+    </sw-page>
+{% endblock %}

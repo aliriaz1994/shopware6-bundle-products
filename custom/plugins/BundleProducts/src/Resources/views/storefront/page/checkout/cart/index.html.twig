@@ -1,0 +1,26 @@
+{# File: custom/plugins/BundleProducts/src/Resources/views/storefront/page/checkout/cart/index.html.twig #}
+
+{% sw_extends '@Storefront/storefront/page/checkout/cart/index.html.twig' %}
+
+{% block page_checkout_cart %}
+    {# Wrap the entire cart in bundle widget container #}
+    <div data-bundle-widget="true" class="checkout-bundle-enabled">
+        {{ parent() }}
+    </div>
+{% endblock %}
+
+{# Override the cart items rendering to ensure bundle detection #}
+{% block page_checkout_cart_table_items %}
+    {% for lineItem in page.cart.lineItems %}
+        {% block page_checkout_cart_table_item %}
+            {% block page_checkout_item %}
+                {# This will now use our custom line-item.html.twig template #}
+                {% sw_include '@Storefront/storefront/component/line-item/line-item.html.twig' %}
+            {% endblock %}
+        {% endblock %}
+    {% endfor %}
+{% endblock %}
+
+{% block base_script_token %}
+    {{ parent() }}
+{% endblock %}

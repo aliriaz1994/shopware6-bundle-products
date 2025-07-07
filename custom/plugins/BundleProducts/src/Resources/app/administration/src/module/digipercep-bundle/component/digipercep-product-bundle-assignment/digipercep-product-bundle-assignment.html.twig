@@ -1,0 +1,281 @@
+{% block digipercep_product_bundle_assignment %}
+    <sw-card title="Bundle Assignments" :is-loading="isLoading">
+        <template #toolbar>
+            <sw-container columns="1fr auto" gap="16px">
+                <div class="bundle-assignment-info">
+                    <sw-alert variant="info">
+                        <p>Assign up to 3 bundles to this product. Each bundle slot can contain one bundle.</p>
+                        <p v-if="hasCustomFieldData" class="custom-field-notice">
+                            <sw-icon name="regular-info-circle" size="12px"></sw-icon>
+                            This product has custom field bundle data available.
+                        </p>
+                    </sw-alert>
+                </div>
+                <div class="bundle-assignment-actions">
+                    <!-- Storage Mode Toggle -->
+                    <sw-field
+                            type="switch"
+                            v-model="useCustomFields"
+                            :label="'Use Custom Fields'"
+                            size="small"
+                            @update:value="onToggleStorageMode">
+                    </sw-field>
+
+                    <!-- Migration Options -->
+                    <sw-button-group v-if="showMigrationOptions">
+                        <sw-button
+                                size="small"
+                                @click="onMigrateBundles('database_to_custom_field')">
+                            DB → CF
+                        </sw-button>
+                        <sw-button
+                                size="small"
+                                @click="onMigrateBundles('custom_field_to_database')">
+                            CF → DB
+                        </sw-button>
+                    </sw-button-group>
+
+                    <sw-button
+                            variant="primary"
+                            size="small"
+                            :disabled="isLoading"
+                            @click="onSaveAssignments">
+                        Save Assignments
+                    </sw-button>
+                    <sw-button
+                            size="small"
+                            :disabled="isLoading"
+                            @click="onRefresh">
+                        Refresh
+                    </sw-button>
+                    <sw-button
+                            size="small"
+                            variant="ghost"
+                            @click="showMigrationOptions = !showMigrationOptions">
+                        <sw-icon name="regular-cog" size="12px"></sw-icon>
+                    </sw-button>
+                </div>
+            </sw-container>
+        </template>
+
+        <!-- Storage Mode Indicator -->
+        <div class="storage-mode-indicator">
+            <sw-alert :variant="useCustomFields ? 'warning' : 'success'" class="storage-alert">
+                <template #icon>
+                    <sw-icon :name="useCustomFields ? 'regular-database' : 'regular-table'" size="16px"></sw-icon>
+                </template>
+                <p>
+                    <strong>Storage Mode:</strong>
+                    {{ useCustomFields ? 'Custom Fields (digipercep_bundle_product)' : 'Database Tables' }}
+                </p>
+                <p class="storage-description">
+                    {{ useCustomFields ? 'Data stored in product custom field as JSON' : 'Data stored in dedicated database tables' }}
+                </p>
+            </sw-alert>
+        </div>
+
+        <div class="bundle-assignment-grid">
+            <!-- Bundle 1 -->
+            <sw-card title="Bundle 1" class="bundle-slot-card" :class="{ 'has-bundle': bundleSlots.bundle_1.bundleId }">
+                <div class="bundle-slot-content">
+                    <sw-entity-single-select
+                            entity="digipercep_bundle"
+                            v-model:value="bundleSlots.bundle_1.bundleId"
+                            :label="'Select Bundle'"
+                            :placeholder="'Choose a bundle...'"
+                            :criteria="bundleCriteria"
+                            labelProperty="name"
+                            valueProperty="id"
+                            :disabled="isLoading"
+                            @update:value="onBundleChanged('bundle_1', $event)">
+
+                        <template #result-item="{ item, index }">
+                            <li class="sw-select-result__result-item" :class="{ 'is--active': index === 0 }">
+                                <div class="bundle-select-item">
+                                    <strong>{{ item.name }}</strong>
+                                    <span class="bundle-discount">
+                                        {{ item.discount }}{{ item.discountType === 'percentage' ? '%' : '' }} discount
+                                    </span>
+                                </div>
+                            </li>
+                        </template>
+                    </sw-entity-single-select>
+
+                    <sw-number-field
+                            v-if="bundleSlots.bundle_1.bundleId"
+                            v-model:value="bundleSlots.bundle_1.priority"
+                            :label="'Priority'"
+                            :placeholder="'0'"
+                            :min="0"
+                            :step="1"
+                            :digits="0"
+                            :disabled="isLoading">
+                    </sw-number-field>
+
+                    <div v-if="bundleSlots.bundle_1.bundle" class="assigned-bundle-info">
+                        <div class="bundle-info-header">
+                            <span class="bundle-name">{{ bundleSlots.bundle_1.bundle.name }}</span>
+                            <sw-button
+                                    variant="ghost"
+                                    size="x-small"
+                                    @click="clearBundleSlot('bundle_1')">
+                                <sw-icon name="regular-times-s" size="12px"></sw-icon>
+                            </sw-button>
+                        </div>
+                        <div class="bundle-info-details">
+                            <span class="bundle-discount-info">
+                                Discount: {{ bundleSlots.bundle_1.bundle.discount }}{{ bundleSlots.bundle_1.bundle.discountType === 'percentage' ? '%' : '' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </sw-card>
+
+            <!-- Bundle 2 -->
+            <sw-card title="Bundle 2" class="bundle-slot-card" :class="{ 'has-bundle': bundleSlots.bundle_2.bundleId }">
+                <div class="bundle-slot-content">
+                    <sw-entity-single-select
+                            entity="digipercep_bundle"
+                            v-model:value="bundleSlots.bundle_2.bundleId"
+                            :label="'Select Bundle'"
+                            :placeholder="'Choose a bundle...'"
+                            :criteria="bundleCriteria"
+                            labelProperty="name"
+                            valueProperty="id"
+                            :disabled="isLoading"
+                            @update:value="onBundleChanged('bundle_2', $event)">
+
+                        <template #result-item="{ item, index }">
+                            <li class="sw-select-result__result-item" :class="{ 'is--active': index === 0 }">
+                                <div class="bundle-select-item">
+                                    <strong>{{ item.name }}</strong>
+                                    <span class="bundle-discount">
+                                        {{ item.discount }}{{ item.discountType === 'percentage' ? '%' : '' }} discount
+                                    </span>
+                                </div>
+                            </li>
+                        </template>
+                    </sw-entity-single-select>
+
+                    <sw-number-field
+                            v-if="bundleSlots.bundle_2.bundleId"
+                            v-model:value="bundleSlots.bundle_2.priority"
+                            :label="'Priority'"
+                            :placeholder="'0'"
+                            :min="0"
+                            :step="1"
+                            :digits="0"
+                            :disabled="isLoading">
+                    </sw-number-field>
+
+                    <div v-if="bundleSlots.bundle_2.bundle" class="assigned-bundle-info">
+                        <div class="bundle-info-header">
+                            <span class="bundle-name">{{ bundleSlots.bundle_2.bundle.name }}</span>
+                            <sw-button
+                                    variant="ghost"
+                                    size="x-small"
+                                    @click="clearBundleSlot('bundle_2')">
+                                <sw-icon name="regular-times-s" size="12px"></sw-icon>
+                            </sw-button>
+                        </div>
+                        <div class="bundle-info-details">
+                            <span class="bundle-discount-info">
+                                Discount: {{ bundleSlots.bundle_2.bundle.discount }}{{ bundleSlots.bundle_2.bundle.discountType === 'percentage' ? '%' : '' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </sw-card>
+
+            <!-- Bundle 3 -->
+            <sw-card title="Bundle 3" class="bundle-slot-card" :class="{ 'has-bundle': bundleSlots.bundle_3.bundleId }">
+                <div class="bundle-slot-content">
+                    <sw-entity-single-select
+                            entity="digipercep_bundle"
+                            v-model:value="bundleSlots.bundle_3.bundleId"
+                            :label="'Select Bundle'"
+                            :placeholder="'Choose a bundle...'"
+                            :criteria="bundleCriteria"
+                            labelProperty="name"
+                            valueProperty="id"
+                            :disabled="isLoading"
+                            @update:value="onBundleChanged('bundle_3', $event)">
+
+                        <template #result-item="{ item, index }">
+                            <li class="sw-select-result__result-item" :class="{ 'is--active': index === 0 }">
+                                <div class="bundle-select-item">
+                                    <strong>{{ item.name }}</strong>
+                                    <span class="bundle-discount">
+                                        {{ item.discount }}{{ item.discountType === 'percentage' ? '%' : '' }} discount
+                                    </span>
+                                </div>
+                            </li>
+                        </template>
+                    </sw-entity-single-select>
+
+                    <sw-number-field
+                            v-if="bundleSlots.bundle_3.bundleId"
+                            v-model:value="bundleSlots.bundle_3.priority"
+                            :label="'Priority'"
+                            :placeholder="'0'"
+                            :min="0"
+                            :step="1"
+                            :digits="0"
+                            :disabled="isLoading">
+                    </sw-number-field>
+
+                    <div v-if="bundleSlots.bundle_3.bundle" class="assigned-bundle-info">
+                        <div class="bundle-info-header">
+                            <span class="bundle-name">{{ bundleSlots.bundle_3.bundle.name }}</span>
+                            <sw-button
+                                    variant="ghost"
+                                    size="x-small"
+                                    @click="clearBundleSlot('bundle_3')">
+                                <sw-icon name="regular-times-s" size="12px"></sw-icon>
+                            </sw-button>
+                        </div>
+                        <div class="bundle-info-details">
+                            <span class="bundle-discount-info">
+                                Discount: {{ bundleSlots.bundle_3.bundle.discount }}{{ bundleSlots.bundle_3.bundle.discountType === 'percentage' ? '%' : '' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </sw-card>
+        </div>
+
+        <!-- Summary Section -->
+        <div v-if="hasAssignedBundles" class="bundle-assignment-summary">
+            <h4>Assigned Bundles Summary</h4>
+            <div class="summary-list">
+                <div
+                        v-for="(slot, slotName) in bundleSlots"
+                        :key="slotName"
+                        v-if="slot.bundle"
+                        class="summary-item">
+                    <span class="slot-label">{{ formatSlotLabel(slotName) }}:</span>
+                    <span class="bundle-name">{{ slot.bundle.name }}</span>
+                    <span class="bundle-discount">({{ slot.bundle.discount }}{{ slot.bundle.discountType === 'percentage' ? '%' : '' }} discount)</span>
+                    <span v-if="slot.priority" class="bundle-priority">Priority: {{ slot.priority }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Info (for developers) -->
+        <div v-if="showMigrationOptions" class="technical-info">
+            <sw-card title="Technical Information" variant="ghost">
+                <div class="tech-info-grid">
+                    <div class="tech-info-item">
+                        <strong>Custom Field Name:</strong> digipercep_bundle_product
+                    </div>
+                    <div class="tech-info-item">
+                        <strong>Storage Type:</strong> {{ useCustomFields ? 'JSON in custom_field table' : 'Normalized database tables' }}
+                    </div>
+                    <div class="tech-info-item">
+                        <strong>Has Custom Field Data:</strong> {{ hasCustomFieldData ? 'Yes' : 'No' }}
+                    </div>
+                </div>
+            </sw-card>
+        </div>
+    </sw-card>
+{% endblock %}

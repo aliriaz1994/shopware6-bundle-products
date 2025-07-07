@@ -1,0 +1,143 @@
+{
+  "digipercep-bundle": {
+    "general": {
+      "mainMenuItemGeneral": "Bundle Products"
+    },
+    "create": {
+      "title": "Create Bundle",
+      "cardTitle": "Bundle Information",
+      "buttonSave": "Save Bundle",
+      "buttonCancel": "Cancel",
+      "labelName": "Bundle Name",
+      "placeholderName": "Enter bundle name",
+      "labelDiscount": "Discount",
+      "labelDiscountType": "Discount Type",
+      "labelDisplayMode": "Display Mode",
+      "labelPriority": "Priority",
+      "labelActive": "Active",
+      "helpTextSelectable": "Allow customers to select optional products in this bundle",
+      "optionPercentage": "Percentage",
+      "optionAbsolute": "Fixed Amount",
+      "optionDisplayDefault": "Default",
+      "optionDisplayPromotionBox": "Promotion Box",
+      "errorNameRequired": "Bundle name is required",
+      "messageSaveSuccess": "Bundle saved successfully!",
+      "messageSaveError": "Failed to save bundle: {error}"
+    },
+    "list": {
+      "title": "Bundle Products",
+      "buttonAddBundle": "Add Bundle",
+      "columnName": "Name",
+      "columnDiscount": "Discount",
+      "columnDiscountType": "Type",
+      "columnSelectable": "Selectable",
+      "columnActive": "Active",
+      "emptyTitle": "No bundles found",
+      "emptySubline": "Create your first bundle to get started",
+      "editAction": "Edit Bundle",
+      "deleteAction": "Delete Bundle"
+    },
+    "detail": {
+      "buttonSave": "Save",
+      "buttonCancel": "Cancel",
+      "tabGeneral": "General",
+      "tabProducts": "Products",
+      "messageSaveSuccess": "Bundle saved successfully",
+      "messageSaveError": "Failed to save bundle",
+      "base": {
+        "cardTitle": "Bundle Information",
+        "labelName": "Name",
+        "placeholderName": "Enter bundle name...",
+        "labelActive": "Active",
+        "labelDiscount": "Discount",
+        "labelDiscountType": "Discount Type",
+        "labelSelectable": "Customer can select products",
+        "helpTextSelectable": "Allow customers to choose which products they want from this bundle",
+        "labelPriority": "Priority",
+        "labelDisplayMode": "Display Mode",
+        "optionPercentage": "Percentage",
+        "optionAbsolute": "Absolute",
+        "optionDisplayDefault": "Default",
+        "optionDisplayPromotionBox": "Promotion Box"
+      },
+      "products": {
+        "cardTitle": "Bundle Products",
+        "selectProducts": "Select Products",
+        "selectProductsPlaceholder": "Search and select products to add to bundle",
+        "addProducts": "Add Selected Products",
+        "columnProduct": "Product",
+        "columnQuantity": "Quantity",
+        "columnOptional": "Optional",
+        "emptyTitle": "No products assigned",
+        "emptySubline": "Add products to create your bundle. Select products using the search above.",
+        "addFirstProduct": "Add Your First Product",
+        "removeProduct": "Remove from Bundle",
+        "totalProducts": "No products | {count} product | {count} products"
+      },
+      "productAssignment": {
+        "buttonAddProduct": "Add Products",
+        "buttonAdd": "Add Selected Products",
+        "buttonCancel": "Cancel",
+        "columnProduct": "Product",
+        "columnQuantity": "Quantity",
+        "columnOptional": "Optional",
+        "contextMenuRemove": "Remove",
+        "modalTitle": "Select Products",
+        "emptyTitle": "No products added",
+        "emptySubline": "Add products to this bundle"
+      },
+      "bundle": {
+        "product": {
+          "title": "Available Bundles"
+        },
+        "addToCart": {
+          "success": "Bundle \"%bundleName%\" with %productCount% products has been added to cart (saved €%savings%)",
+          "error": "Error adding bundle to cart: %message%",
+          "genericError": "An error occurred while adding the bundle to cart. Please try again."
+        },
+        "tab": {
+          "title": "Bundles"
+        },
+        "discount": {
+          "percentage": "discount",
+          "absolute": "discount",
+          "off": "savings"
+        },
+        "products": {
+          "included": "Included Products"
+        },
+        "quantity": "Quantity",
+        "optional": "Optional",
+        "select": "Select Bundle",
+        "slot": {
+          "bundle_1": "Bundle 1",
+          "bundle_2": "Bundle 2",
+          "bundle_3": "Bundle 3"
+        }
+      },
+      "checkout": {
+        "cartUpdateSuccess": "Shopping cart updated.",
+        "addToCartSuccess": "{1} 1 product added to your shopping cart.|]1,Inf[ %count% products added to your shopping cart.",
+        "bundleContents": "Bundle Contents",
+        "bundleContentsDescription": "This bundle includes the following items:",
+        "mainProduct": "Main Product",
+        "included": "Included",
+        "inCart": "In Cart",
+        "quantity": "Quantity",
+        "unitPrice": "Unit Price",
+        "bundlePricingSummary": "Bundle Pricing Summary",
+        "totalBeforeDiscount": "Total if purchased separately",
+        "bundleDiscount": "Bundle discount",
+        "finalBundlePrice": "Your bundle price",
+        "bundleSavingsHighlight": "You save %amount% with this bundle!",
+        "bundleId": "Bundle ID",
+        "hideDetails": "Hide Details",
+        "bundleSave": "Save %amount%",
+        "removeLineItem": "Remove %label% from shopping cart",
+        "lineItemQuantity": "Quantity",
+        "lineItemUnitPrice": "Unit Price",
+        "lineItemTotalPrice": "Total Price"
+      }
+    }
+  }
+}

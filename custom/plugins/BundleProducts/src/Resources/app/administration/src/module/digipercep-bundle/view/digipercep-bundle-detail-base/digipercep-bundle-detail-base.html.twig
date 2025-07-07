@@ -1,0 +1,65 @@
+{% block digipercep_bundle_detail_base %}
+    <sw-card :title="$tc('digipercep-bundle.detail.base.cardTitle')" :isLoading="isLoading">
+        <sw-container columns="repeat(auto-fit, minmax(250px, 1fr))" gap="0 30px">
+
+            <!-- Bundle Name -->
+            <sw-text-field
+                    v-model:value="formData.name"
+                    :label="$tc('digipercep-bundle.detail.base.labelName')"
+                    :placeholder="$tc('digipercep-bundle.detail.base.placeholderName')"
+                    required>
+            </sw-text-field>
+
+            <!-- Discount -->
+            <sw-number-field
+                    v-model:value="formData.discount"
+                    :label="$tc('digipercep-bundle.detail.base.labelDiscount')"
+                    :min="0"
+                    :max="formData.discountType === 'percentage' ? 100 : null"
+                    :suffix="formData.discountType === 'percentage' ? '%' : ''"
+                    :step="0.01"
+                    :digits="2"
+                    required>
+            </sw-number-field>
+
+            <!-- Discount Type -->
+            <sw-single-select
+                    v-model:value="formData.discountType"
+                    :label="$tc('digipercep-bundle.detail.base.labelDiscountType')"
+                    :options="discountTypeOptions">
+            </sw-single-select>
+
+            <!-- Display Mode -->
+            <sw-single-select
+                    v-model:value="formData.displayMode"
+                    :label="$tc('digipercep-bundle.detail.base.labelDisplayMode')"
+                    :options="displayModeOptions">
+            </sw-single-select>
+
+            <!-- Priority -->
+            <sw-number-field
+                    v-model:value="formData.priority"
+                    :label="$tc('digipercep-bundle.detail.base.labelPriority')"
+                    :min="0"
+                    :step="1"
+                    :digits="0">
+            </sw-number-field>
+        </sw-container>
+
+        <sw-container columns="repeat(auto-fit, minmax(250px, 1fr))" gap="0 30px">
+
+            <!-- Active -->
+            <sw-switch-field
+                    v-model="formData.active"
+                    :label="$tc('digipercep-bundle.detail.base.labelActive')">
+            </sw-switch-field>
+
+            <!-- Selectable -->
+            <sw-switch-field
+                    v-model="formData.isSelectable"
+                    :label="$tc('digipercep-bundle.detail.base.labelSelectable')"
+                    :helpText="$tc('digipercep-bundle.detail.base.helpTextSelectable')">
+            </sw-switch-field>
+        </sw-container>
+    </sw-card>
+{% endblock %}

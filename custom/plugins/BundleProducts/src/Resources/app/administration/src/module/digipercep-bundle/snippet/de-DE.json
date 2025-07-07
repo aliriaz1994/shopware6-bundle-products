@@ -1,0 +1,125 @@
+{
+  "digipercep-bundle": {
+    "general": {
+      "mainMenuItemGeneral": "Bundles"
+    },
+    "create": {
+      "title": "Bundle erstellen",
+      "cardTitle": "Bundle Informationen",
+      "buttonSave": "Bundle speichern",
+      "buttonCancel": "Abbrechen",
+      "labelName": "Bundle Name",
+      "placeholderName": "Bundle Name eingeben",
+      "labelDiscount": "Rabatt",
+      "labelDiscountType": "Rabatt-Art",
+      "labelDisplayMode": "Anzeige-Modus",
+      "labelPriority": "Priorität",
+      "labelActive": "Aktiv",
+      "labelSelectable": "Produktauswahl ermöglichen",
+      "helpTextSelectable": "Kunden können optionale Produkte in diesem Bundle auswählen",
+      "optionPercentage": "Prozentual",
+      "optionAbsolute": "Fester Betrag",
+      "optionDisplayDefault": "Standard",
+      "optionDisplayPromotionBox": "Promotion Box",
+      "errorNameRequired": "Bundle Name ist erforderlich",
+      "messageSaveSuccess": "Bundle erfolgreich gespeichert!",
+      "messageSaveError": "Fehler beim Speichern des Bundles: {error}"
+    },
+    "list": {
+      "title": "Bundles",
+      "buttonAddBundle": "Bundle hinzufügen",
+      "columnName": "Name",
+      "columnDiscount": "Rabatt",
+      "columnDiscountType": "Typ",
+      "columnSelectable": "Wählbar",
+      "columnActive": "Aktiv",
+      "emptyTitle": "Noch keine Bundles",
+      "emptySubline": "Erstelle dein erstes Bundle",
+      "editAction": "Bundle bearbeiten",
+      "deleteAction": "Bundle löschen"
+    },
+    "detail": {
+      "buttonSave": "Speichern",
+      "buttonCancel": "Abbrechen",
+      "tabGeneral": "Allgemein",
+      "tabProducts": "Produkte",
+      "messageSaveSuccess": "Bundle erfolgreich gespeichert",
+      "messageSaveError": "Fehler beim Speichern des Bundles",
+      "base": {
+        "cardTitle": "Bundle Informationen",
+        "labelName": "Name",
+        "placeholderName": "Bundle Name eingeben...",
+        "labelActive": "Aktiv",
+        "labelDiscount": "Rabatt",
+        "labelDiscountType": "Rabatt Typ",
+        "labelSelectable": "Kunde kann Produkte auswählen",
+        "helpTextSelectable": "Ermögliche Kunden, Produkte aus diesem Bundle auszuwählen",
+        "labelPriority": "Priorität",
+        "labelDisplayMode": "Anzeigemodus",
+        "optionPercentage": "Prozentual",
+        "optionAbsolute": "Absolut",
+        "optionDisplayDefault": "Standard",
+        "optionDisplayPromotionBox": "Promotion Box"
+      },
+      "products": {
+        "cardTitle": "Bundle Produkte",
+        "selectProducts": "Produkte auswählen",
+        "selectProductsPlaceholder": "Produkte suchen und zum Bundle hinzufügen",
+        "addProducts": "Ausgewählte Produkte hinzufügen",
+        "columnProduct": "Produkt",
+        "columnQuantity": "Menge",
+        "columnOptional": "Optional",
+        "emptyTitle": "Keine Produkte zugewiesen",
+        "emptySubline": "Fügen Sie Produkte hinzu, um Ihr Bundle zu erstellen. Verwenden Sie die Suche oben, um Produkte auszuwählen.",
+        "addFirstProduct": "Ihr erstes Produkt hinzufügen",
+        "removeProduct": "Aus Bundle entfernen",
+        "totalProducts": "Keine Produkte | {count} Produkt | {count} Produkte"
+      },
+      "productAssignment": {
+        "buttonAddProduct": "Produkte hinzufügen",
+        "buttonAdd": "Ausgewählte Produkte hinzufügen",
+        "buttonCancel": "Abbrechen",
+        "columnProduct": "Produkt",
+        "columnQuantity": "Menge",
+        "columnOptional": "Optional",
+        "contextMenuRemove": "Entfernen",
+        "modalTitle": "Produkte auswählen",
+        "emptyTitle": "Keine Produkte hinzugefügt",
+        "emptySubline": "Füge Produkte zu diesem Bundle hinzu"
+      },
+      "bundle": {
+        "product": {
+          "title": "Verfügbare Bundles"
+        },
+        "addToCart": {
+          "success": "Bundle \"%bundleName%\" with %productCount% products has been added to cart (saved €%savings%)",
+          "error": "Error adding bundle to cart: %message%",
+          "genericError": "An error occurred while adding the bundle to cart. Please try again."
+        },
+        "tab": {
+          "title": "Bundles"
+        },
+        "discount": {
+          "percentage": "Rabatt",
+          "absolute": "Rabatt",
+          "off": "Ersparnis"
+        },
+        "products": {
+          "included": "Enthaltene Produkte"
+        },
+        "quantity": "Menge",
+        "optional": "Optional",
+        "select": "Bundle auswählen",
+        "slot": {
+          "bundle_1": "Bundle 1",
+          "bundle_2": "Bundle 2",
+          "bundle_3": "Bundle 3"
+        }
+      },
+      "checkout": {
+        "cartUpdateSuccess": "Shopping cart updated.",
+        "addToCartSuccess": "{1} 1 product added to your shopping cart.|]1,Inf[ %count% products added to your shopping cart."
+      }
+    }
+  }
+}

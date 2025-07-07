@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/platform/trunk/src/Core/System/SystemConfig/Schema/config.xsd">
+
+    <card>
+        <title>General Settings</title>
+        <title lang="de-DE">Allgemeine Einstellungen</title>
+
+        <input-field type="bool">
+            <name>enabled</name>
+            <label>Enable Bundle Products</label>
+            <label lang="de-DE">Bundle Produkte aktivieren</label>
+            <defaultValue>true</defaultValue>
+        </input-field>
+
+        <input-field type="int">
+            <name>maxBundlesPerProduct</name>
+            <label>Maximum bundles per product</label>
+            <label lang="de-DE">Maximale Bundles pro Produkt</label>
+            <defaultValue>3</defaultValue>
+            <min>1</min>
+            <max>10</max>
+        </input-field>
+
+        <input-field type="single-select">
+            <name>defaultDisplayMode</name>
+            <label>Default display mode</label>
+            <label lang="de-DE">Standard Anzeigemodus</label>
+            <options>
+                <option>
+                    <id>default</id>
+                    <name>Default</name>
+                    <name lang="de-DE">Standard</name>
+                </option>
+                <option>
+                    <id>promotion_box</id>
+                    <name>Promotion Box</name>
+                    <name lang="de-DE">Promotion Box</name>
+                </option>
+            </options>
+            <defaultValue>default</defaultValue>
+        </input-field>
+    </card>
+
+    <card>
+        <title>Display Settings</title>
+        <title lang="de-DE">Anzeigeeinstellungen</title>
+
+        <input-field type="bool">
+            <name>showBadgeInListing</name>
+            <label>Show bundle badge in product listing</label>
+            <label lang="de-DE">Bundle-Badge in Produktliste anzeigen</label>
+            <defaultValue>true</defaultValue>
+        </input-field>
+
+        <input-field type="text">
+            <name>badgeText</name>
+            <label>Badge text</label>
+            <label lang="de-DE">Badge Text</label>
+            <placeholder>Bundle available</placeholder>
+            <placeholder lang="de-DE">Bundle verfügbar</placeholder>
+            <defaultValue>Bundle available</defaultValue>
+        </input-field>
+
+        <input-field type="bool">
+            <name>showOriginalPrice</name>
+            <label>Show original price</label>
+            <label lang="de-DE">Originalpreis anzeigen</label>
+            <defaultValue>true</defaultValue>
+        </input-field>
+
+        <input-field type="bool">
+            <name>showSavingsAmount</name>
+            <label>Show savings amount</label>
+            <label lang="de-DE">Ersparnis anzeigen</label>
+            <defaultValue>true</defaultValue>
+        </input-field>
+    </card>
+
+    <card>
+        <title>Advanced Settings</title>
+        <title lang="de-DE">Erweiterte Einstellungen</title>
+
+        <input-field type="bool">
+            <name>flattenProductRelations</name>
+            <label>Flatten parent-child product relationships</label>
+            <label lang="de-DE">Eltern-Kind Produktbeziehungen auflösen</label>
+            <helpText>Enable this if you have an external system that requires flat products</helpText>
+            <helpText lang="de-DE">Aktivieren Sie dies, wenn Sie ein externes System haben, das flache Produkte benötigt</helpText>
+            <defaultValue>false</defaultValue>
+        </input-field>
+    </card>
+</config>

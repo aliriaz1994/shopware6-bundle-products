@@ -1,0 +1,14 @@
+{
+  "digipercep-bundle": {
+    "originalPrice": "Originalpreis",
+    "bundlePrice": "Bundle-Preis",
+    "savings": "Sie sparen",
+    "addToCart": "Bundle in den Warenkorb",
+    "bundleBadge": "Bundle verfügbar",
+    "selectProducts": "Produkte auswählen",
+    "frequentlyBoughtTogether": "Wird oft zusammen gekauft",
+    "addingToCart": "Wird hinzugefügt...",
+    "addedToCart": "Bundle wurde in den Warenkorb gelegt",
+    "errorAddingToCart": "Fehler beim Hinzufügen des Bundles"
+  }
+}

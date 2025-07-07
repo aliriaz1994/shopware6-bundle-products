@@ -1,0 +1,88 @@
+// Bundle list styles
+.digipercep-bundle-list {
+  .sw-data-grid__cell-content {
+    // Ensure proper alignment for boolean icons
+    &.sw-data-grid__cell-content--boolean {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+
+  // Custom boolean status icon colors with high specificity
+  .bundle-status-active {
+    color: #37d046 !important;
+
+    svg path {
+      fill: #37d046 !important;
+    }
+
+    &.sw-icon svg path {
+      fill: #37d046 !important;
+    }
+  }
+
+  .bundle-status-inactive {
+    color: #de294c !important;
+
+    svg path {
+      fill: #de294c !important;
+    }
+
+    &.sw-icon svg path {
+      fill: #de294c !important;
+    }
+
+    // Force visibility for inactive icons
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: inline-block !important;
+  }
+
+  // Override any default inactive styling
+  .sw-icon.bundle-status-inactive {
+    &.is--inactive {
+      opacity: 1 !important;
+      visibility: visible !important;
+
+      svg {
+        opacity: 1 !important;
+        visibility: visible !important;
+
+        path {
+          fill: #de294c !important;
+          opacity: 1 !important;
+        }
+      }
+    }
+  }
+
+  // Alternative approach - target the specific active cell
+  .sw-data-grid__cell--active {
+    .sw-icon {
+      &.bundle-status-active {
+        color: #37d046 !important;
+
+        svg path {
+          fill: #37d046 !important;
+        }
+      }
+
+      &.bundle-status-inactive {
+        color: #de294c !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+
+        svg path {
+          fill: #de294c !important;
+        }
+      }
+    }
+  }
+
+  // Ensure icons are centered in the cell
+  .sw-data-grid__cell--active .sw-data-grid__cell-content {
+    justify-content: center;
+    align-items: center;
+  }
+}

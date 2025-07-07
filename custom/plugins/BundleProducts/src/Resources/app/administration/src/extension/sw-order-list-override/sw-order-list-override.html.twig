@@ -1,0 +1,88 @@
+<!-- src/Resources/app/administration/src/extension/sw-order-list-override/sw-order-list-override.html.twig -->
+
+{% block sw_order_list %}
+    {% parent %}
+{% endblock %}
+
+{% block sw_order_list_grid %}
+    <sw-entity-listing
+            v-if="orders"
+            :items="orders"
+            :repository="orderRepository"
+            :show-selection="true"
+            :columns="orderColumns"
+            :full-page="false"
+            :allow-edit="false"
+            :allow-view="true"
+            :allow-delete="acl.can('order.deleter')"
+            :allow-inline-edit="false"
+            identifier="sw-order-list"
+            detail-route="sw.order.detail"
+            @selection-change="onSelectionChanged"
+            @column-sort="onSortColumn"
+            @page-change="onPageChange"
+            @items-per-page-change="onChangeLimit">
+
+        <!-- Enhanced Order Number Column with Bundle Indicator -->
+        {% block sw_order_list_grid_columns_order_number %}
+            <template #column-orderNumber="{ item, compact, isInlineEdit }">
+                <div class="sw-order-list__order-number">
+                    <router-link
+                            :title="$tc('sw-order.list.contextMenuView')"
+                            :to="{ name: 'sw.order.detail', params: { id: item.id } }"
+                            class="sw-order-list__order-link">
+                        {{ item.orderNumber }}
+                    </router-link>
+
+                    <sw-icon v-if="hasBundle(item)"
+                             name="regular-products"
+                             size="14px"
+                             class="sw-order-list__bundle-indicator"
+                             title="This order contains bundle products">
+                    </sw-icon>
+                </div>
+            </template>
+        {% endblock %}
+
+        <!-- Bundle Information Column -->
+        {% block sw_order_list_grid_columns_bundle_info %}
+            <template #column-bundleInfo="{ item, compact, isInlineEdit }">
+                <div class="sw-order-list__bundle-info">
+                    <template v-if="getBundleInfo(item)">
+                        <div class="sw-order-list__bundle-summary">
+                            <sw-icon name="regular-products" size="12px"></sw-icon>
+                            <span class="bundle-text">
+                                {{ formatBundleInfo(getBundleInfo(item)) }}
+                            </span>
+                        </div>
+                    </template>
+
+                    <span v-else class="no-bundle">-</span>
+                </div>
+            </template>
+        {% endblock %}
+
+        <!-- Bundle Savings Column -->
+        {% block sw_order_list_grid_columns_bundle_savings %}
+            <template #column-bundleSavings="{ item, compact, isInlineEdit }">
+                <div class="sw-order-list__bundle-savings">
+                    <template v-if="getBundleInfo(item)">
+                        <span class="savings-badge"
+                              :class="{
+                                  'has-savings': getTotalSavings(item) > 0,
+                                  'no-savings': getTotalSavings(item) === 0
+                              }">
+                            <sw-icon v-if="getTotalSavings(item) > 0"
+                                     name="regular-chevron-down-xs"
+                                     size="10px">
+                            </sw-icon>
+                            {{ formatBundleSavings(getBundleInfo(item)) }}
+                        </span>
+                    </template>
+                    <span v-else>-</span>
+                </div>
+            </template>
+        {% endblock %}
+
+    </sw-entity-listing>
+{% endblock %}

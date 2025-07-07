@@ -1,0 +1,138 @@
+{% block digipercep_bundle_detail_products %}
+    <sw-card title="Bundle Products" :isLoading="isLoading">
+
+        <!-- Manual Product Search and Add Section -->
+        <template #toolbar>
+            <sw-container columns="1fr auto" gap="16px">
+                <!-- Custom Product Search -->
+                <div class="product-search-container">
+                    <sw-simple-search-field
+                            v-model="searchTerm"
+                            :placeholder="'Search products...'"
+                            @search-term-change="onSearchProducts">
+                    </sw-simple-search-field>
+
+                    <!-- Search Results Dropdown -->
+                    <div v-if="searchResults.length > 0" class="search-results-dropdown">
+                        <div
+                                v-for="product in searchResults"
+                                :key="product.id"
+                                class="search-result-item"
+                                @click="selectProduct(product)">
+                            <div class="product-info">
+                                <img v-if="product.cover?.media?.url"
+                                     :src="product.cover.media.url"
+                                     class="product-image"
+                                     :alt="product.name">
+                                <div class="product-details">
+                                    <strong>{{ product.name }}</strong>
+                                    <small>{{ product.productNumber }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Selected Products Display -->
+                <div v-if="selectedProductsForAdd.length > 0" class="selected-products">
+                    <span class="selected-count">{{ selectedProductsForAdd.length }} selected</span>
+                    <sw-button variant="primary" @click="addSelectedProducts">
+                        Add Products
+                    </sw-button>
+                    <sw-button @click="clearSelection">
+                        Clear
+                    </sw-button>
+                </div>
+            </sw-container>
+        </template>
+
+        <!-- Bundle Products List -->
+        <template #grid>
+            <sw-data-grid
+                    v-if="bundleProducts.length > 0"
+                    :dataSource="bundleProducts"
+                    :columns="productColumns"
+                    :showSelection="false"
+                    :showActions="true"
+                    :allowInlineEdit="true"
+                    :isLoading="isLoading"
+                    identifier="bundle-products-grid"
+                    @inline-edit-save="onInlineEditSave">
+
+                <!-- Product Column -->
+                <template #column-product="{ item }">
+                    <div class="bundle-product-item">
+                        <img v-if="item.product?.cover?.media?.url"
+                             :src="item.product.cover.media.url"
+                             class="bundle-product-image"
+                             :alt="item.product.name">
+                        <div class="bundle-product-info">
+                            <span class="bundle-product-name">
+                                {{ item.product?.name || 'Unknown Product' }}
+                            </span>
+                            <span class="bundle-product-number">
+                                {{ item.product?.productNumber || item.productId }}
+                            </span>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Quantity Column -->
+                <template #column-quantity="{ item, isInlineEdit }">
+                    <sw-number-field
+                            v-if="isInlineEdit"
+                            v-model:value="item.quantity"
+                            :min="1"
+                            :max="999"
+                            :step="1"
+                            :digits="0">
+                    </sw-number-field>
+                    <span v-else>{{ item.quantity }}</span>
+                </template>
+
+                <!-- Optional Column -->
+                <template #column-isOptional="{ item, isInlineEdit }">
+                    <sw-switch-field
+                            v-if="isInlineEdit"
+                            v-model="item.isOptional">
+                    </sw-switch-field>
+                    <sw-icon
+                            v-else
+                            :name="item.isOptional ? 'regular-checkmark-xs' : 'regular-times-s'"
+                            size="small"
+                            :class="item.isOptional ? 'is-optional-active' : 'is-optional-inactive'">
+                    </sw-icon>
+                </template>
+
+                <!-- Actions Column -->
+                <template #actions="{ item }">
+                    <sw-context-menu-item
+                            icon="regular-times-s"
+                            variant="danger"
+                            @click="removeProduct(item)">
+                        Remove
+                    </sw-context-menu-item>
+                </template>
+            </sw-data-grid>
+
+            <!-- Empty State -->
+            <sw-empty-state
+                    v-else
+                    title="No products assigned"
+                    icon="regular-products">
+                <template #actions>
+                    <p>Search for products above to add them to this bundle</p>
+                </template>
+            </sw-empty-state>
+        </template>
+
+        <!-- Footer Summary -->
+        <template #footer>
+            <div class="bundle-products-summary">
+                <span class="bundle-products-count">
+                    Total: {{ bundleProducts.length }} products
+                </span>
+            </div>
+        </template>
+    </sw-card>
+{% endblock %}

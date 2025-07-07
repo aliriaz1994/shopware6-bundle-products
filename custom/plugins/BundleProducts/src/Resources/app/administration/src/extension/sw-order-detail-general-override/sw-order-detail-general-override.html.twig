@@ -1,0 +1,107 @@
+<!-- Optimized Shopware 6.6 Bundle Details Template -->
+{% block sw_order_detail_general %}
+    {% parent %}
+
+    <!-- Bundle Details Modal -->
+    <template v-if="showBundleDetailsModal">
+        <sw-modal
+                @modal-close="closeBundleDetailsModal"
+                title="Bundle Details"
+                class="bundle-details-modal">
+
+            <template slot="modal-body">
+                <div v-if="selectedBundleDetails" class="bundle-details-content">
+
+                    <!-- Bundle Overview Section -->
+                    <div class="all-bundle-products">
+                        <h3 class="section-title">
+                            <span class="title-icon">📋</span>
+                            Bundle Overview ({{ selectedBundleDetails.allBundleProducts ? selectedBundleDetails.allBundleProducts.length : 0 }})
+                        </h3>
+
+                        <div v-if="selectedBundleDetails.allBundleProducts && selectedBundleDetails.allBundleProducts.length > 0"
+                             class="products-table">
+
+                            <div class="table-header">
+                                <div class="col-name">Product Name</div>
+                                <div class="col-type">Type</div>
+                                <div class="col-price">Unit Price</div>
+                                <div class="col-quantity">Quantity</div>
+                                <div class="col-total">Total</div>
+                            </div>
+
+                            <div v-for="(product, index) in selectedBundleDetails.allBundleProducts"
+                                 :key="'product-' + index"
+                                 class="table-row">
+
+                                <div class="col-name">
+                                    <div class="product-name">{{ getProductDisplayName(product) }}</div>
+                                </div>
+
+                                <div class="col-type">
+                                    <span v-if="isMainProduct(product)" class="product-type main-product">Main Product</span>
+                                    <span v-else class="product-type bundle-product">Bundle Product</span>
+                                </div>
+
+                                <div class="col-price">
+                                    <span class="price">{{ formatCurrency(getProductPrice(product)) }}</span>
+                                </div>
+
+                                <div class="col-quantity">
+                                    <span class="quantity-badge">{{ getProductQuantity(product) }}</span>
+                                </div>
+
+                                <div class="col-total">
+                                    <span class="total-price">{{ formatCurrency(calculateProductTotal(product)) }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fallback Message -->
+                        <div v-else class="no-products-message">
+                            <div class="message-icon">📦</div>
+                            <p>No detailed product information available</p>
+                            <p class="bundle-info">Bundle Value: {{ formatCurrency(selectedBundleDetails.finalPrice) }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Unavailable Fallback -->
+                <div v-else class="no-data-fallback">
+                    <div class="fallback-icon">📦</div>
+                    <h3>Bundle Information Unavailable</h3>
+                    <p>We couldn't load the detailed bundle information at this time.</p>
+                </div>
+            </template>
+
+            <template slot="modal-footer">
+                <div class="modal-footer-content">
+                    <div class="footer-summary" v-if="selectedBundleDetails">
+
+                        <div v-if="selectedBundleDetails.originalPrice > 0" class="footer-original">
+                            <span class="original-label">Total before discount:</span>
+                            <span class="original-value">{{ formatCurrency(selectedBundleDetails.originalPrice) }}</span>
+                        </div>
+
+                        <div v-if="selectedBundleDetails.savings > 0" class="footer-savings">
+                            <span class="savings-label">You saved:</span>
+                            <span class="savings-value">{{ formatCurrency(selectedBundleDetails.savings) }}</span>
+                        </div>
+
+                        <div class="footer-total">
+                            <span class="total-label">Bundle Total:</span>
+                            <span class="total-value">{{ formatCurrency(selectedBundleDetails.lineItemTotalPrice) }}</span>
+                        </div>
+                    </div>
+
+                    <sw-button
+                            @click="closeBundleDetailsModal"
+                            variant="primary"
+                            class="close-button">
+                        Close
+                    </sw-button>
+                </div>
+            </template>
+        </sw-modal>
+    </template>
+{% endblock %}

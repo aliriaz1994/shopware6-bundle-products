@@ -1,0 +1,319 @@
+
+{# File: custom/plugins/BundleProducts/src/Resources/views/storefront/element/cms-element-product-description-reviews.html.twig #}
+
+{% sw_extends '@Storefront/storefront/element/cms-element-product-description-reviews.html.twig' %}
+
+{% block element_product_description_reviews %}
+    {# Bundle display BEFORE the description/reviews tabs #}
+    {% if page.extensions.bundleAssignments is defined %}
+        {% set bundleAssignments = page.extensions.bundleAssignments.getVars() %}
+        {% set activeBundles = [] %}
+
+        {% for slotName, assignment in bundleAssignments %}
+            {% if assignment and assignment.bundle and assignment.bundle.active %}
+                {% set activeBundles = activeBundles|merge([{slot: slotName, data: assignment}]) %}
+            {% endif %}
+        {% endfor %}
+
+        {% if activeBundles|length > 0 %}
+            {# CRITICAL FIX: Add data-bundle-widget attribute to initialize the JavaScript plugin #}
+            <div class="bundle-widget-container new-bundle-system" data-bundle-widget="true">
+
+                <div class="h3">
+                    Save with our bundle offers
+                </div>
+
+                {% for bundleInfo in activeBundles %}
+                    {% set assignment = bundleInfo.data %}
+                    {% set bundle = assignment.bundle %}
+                    {% set slotName = bundleInfo.slot %}
+
+                    {# CLEAN BUNDLE CONTAINER - Remove all old digipercep attributes #}
+                    <div class="new-bundle-container"
+                         id="bundle-container-{{ bundle.id }}"
+                         data-bundle-id="{{ bundle.id }}">
+
+                        <div class="bundle-inner">
+                            {# Left side - Products #}
+                            <div class="products">
+                                <div class="product-slider-container">
+                                    {# Main product (current product) #}
+                                    <div class="product-slider-item">
+                                        <div class="product card product-box box-standard">
+                                            <div class="plus-icon">+</div>
+                                            <div class="card-body">
+                                                <div class="product-image-wrapper">
+                                                    <span class="product-image-link is-minimal image">
+                                                        {% if page.product.cover and page.product.cover.media %}
+                                                            <img src="{{ page.product.cover.media.url }}"
+                                                                 alt="{{ page.product.name }}"
+                                                                 title="{{ page.product.name }}"
+                                                                 class="product-image is-minimal"
+                                                                 loading="lazy">
+                                                        {% elseif page.product.media and page.product.media|length > 0 %}
+                                                            <img src="{{ page.product.media.first.url }}"
+                                                                 alt="{{ page.product.name }}"
+                                                                 title="{{ page.product.name }}"
+                                                                 class="product-image is-minimal"
+                                                                 loading="lazy">
+                                                        {% else %}
+                                                            <div class="product-image-placeholder">
+                                                                <span class="icon icon-placeholder icon-fluid">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="552" height="383" viewBox="0 0 552 383">
+                                                                        <defs><g fill="none" fill-rule="evenodd" opacity=".65" id="icons-default-placeholder"><rect width="333.061" height="499.591" x="84.659" y="-82.663" fill="#E9EBF2" fill-rule="nonzero" transform="rotate(-89.862 251.19 167.132)"></rect><g transform="translate(51 49)"><rect width="333.06" height="499.59" x="83.983" y="-83.234" fill="#DADDE5" fill-rule="nonzero" transform="rotate(-90 250.513 166.561)"></rect><polygon fill="#E9EBF2" points="137.18 333.1 500.31 333.1 500.31 302.36 322.15 110.42"></polygon><circle cx="113.04" cy="65.68" r="35.9" fill="#F5F7FC"></circle><polygon fill="#F5F7FC" points="219.88 157.3 73.85 333.1 383.05 333.1"></polygon></g></g></defs>
+                                                                        <use xlink:href="#icons-default-placeholder" fill="#758CA3" fill-rule="evenodd"></use>
+                                                                    </svg>
+                                                                </span>
+                                                            </div>
+                                                        {% endif %}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {# Bundle companion products #}
+                                    {% if bundle.bundleProducts is defined and bundle.bundleProducts is iterable %}
+                                        {% for bundleProduct in bundle.bundleProducts %}
+                                            {% if bundleProduct.product and bundleProduct.product.id != page.product.id %}
+                                                <div class="product-slider-item">
+                                                    <div class="product card product-box box-standard">
+                                                        <div class="card-body">
+                                                            <div class="product-image-wrapper">
+                                                                <span class="product-image-link is-minimal image">
+                                                                    {% if bundleProduct.product.cover and bundleProduct.product.cover.media %}
+                                                                        <img src="{{ bundleProduct.product.cover.media.url }}"
+                                                                             alt="{{ bundleProduct.product.name }}"
+                                                                             title="{{ bundleProduct.product.name }}"
+                                                                             class="product-image is-minimal"
+                                                                             loading="lazy">
+                                                                    {% elseif bundleProduct.product.media and bundleProduct.product.media|length > 0 %}
+                                                                        <img src="{{ bundleProduct.product.media.first.url }}"
+                                                                             alt="{{ bundleProduct.product.name }}"
+                                                                             title="{{ bundleProduct.product.name }}"
+                                                                             class="product-image is-minimal"
+                                                                             loading="lazy">
+                                                                    {% else %}
+                                                                        <div class="product-image-placeholder">
+                                                                            <span class="icon icon-placeholder icon-fluid">
+                                                                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="552" height="383" viewBox="0 0 552 383">
+                                                                                    <use xlink:href="#icons-default-placeholder" fill="#758CA3" fill-rule="evenodd"></use>
+                                                                                </svg>
+                                                                            </span>
+                                                                        </div>
+                                                                    {% endif %}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {# Right side - Pricing and Actions #}
+                            <div class="actions">
+                                {# CRITICAL FIX: Add data-bundle-form attribute for JavaScript detection #}
+                                <form action="{{ path('frontend.bundle.add-to-cart') }}"
+                                      method="post"
+                                      class="buy-widget bundle-main-form new-bundle-form"
+                                      data-bundle-form="true">
+                                    {% if csrf is defined and csrf.token is defined %}
+                                        <input type="hidden" name="_csrf_token" value="{{ csrf.token }}">
+                                    {% endif %}
+                                    {# REMOVE redirectTo to prevent page redirect #}
+                                    <input type="hidden" name="bundle-id" value="{{ bundle.id }}">
+                                    <input type="hidden" name="bundle-product-id" value="{{ page.product.id }}">
+                                    <input type="hidden" name="bundle-source" value="custom_field">
+                                    <input type="hidden" name="bundle-slot" value="{{ slotName }}">
+
+                                    <div class="action-content">
+                                        {% set originalPrice = page.product.calculatedPrice.totalPrice %}
+
+                                        {# Calculate total bundle price including all products #}
+                                        {% set totalBundlePrice = originalPrice %}
+                                        {% if bundle.bundleProducts is defined and bundle.bundleProducts is iterable %}
+                                            {% for bundleProduct in bundle.bundleProducts %}
+                                                {% if bundleProduct.product and bundleProduct.product.id != page.product.id %}
+                                                    {% if bundleProduct.product.calculatedPrice and bundleProduct.product.calculatedPrice.totalPrice %}
+                                                        {% set totalBundlePrice = totalBundlePrice + bundleProduct.product.calculatedPrice.totalPrice %}
+                                                    {% elseif bundleProduct.product.price and bundleProduct.product.price.first %}
+                                                        {% set totalBundlePrice = totalBundlePrice + bundleProduct.product.price.first.gross %}
+                                                    {% endif %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endif %}
+
+                                        {% set discountAmount = bundle.discountType == 'percentage' ? (totalBundlePrice * bundle.discount / 100) : bundle.discount %}
+                                        {% set finalBundlePrice = totalBundlePrice - discountAmount %}
+
+                                        <div class="original-price">
+                                            Instead of: <span class="price">€{{ totalBundlePrice|number_format(2, '.', ',') }}*</span> ({{ bundle.discount }}{{ bundle.discountType == 'percentage' ? '%' : '€' }} saved)<br>
+                                        </div>
+
+                                        <div class="rebate-price">
+                                            Bundle price: <span class="price">€{{ finalBundlePrice|number_format(2, '.', ',') }}*</span>
+                                            <span class="list-price-badge">%</span>
+                                        </div>
+
+                                        <div class="buttons">
+                                            <button type="button"
+                                                    class="btn btn-secondary toggle-details"
+                                                    onclick="toggleBundleDetails('{{ bundle.id }}')"
+                                                    title="Details">
+                                                Details
+                                            </button>
+                                            <button type="submit"
+                                                    class="btn btn-primary add-to-cart new-bundle-submit"
+                                                    title="Add bundle to cart"
+                                                    data-loading-text="Adding to cart...">
+                                                Add bundle to cart
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div style="clear: both;"></div>
+                        </div>
+                    </div>
+
+                    {# Bundle Details Section #}
+                    <div class="bundle-details-section is--hidden" id="bundle-details-{{ bundle.id }}">
+                        <div class="bundle-details-header">
+                            <h4>Bundle Contents</h4>
+                            <p class="bundle-description">This bundle includes the following products:</p>
+                        </div>
+
+                        <div class="bundle-products-grid">
+                            {# Current/Main product #}
+                            <div class="bundle-product-card">
+                                <div class="product-image-section">
+                                    {% if page.product.cover and page.product.cover.media %}
+                                        <img src="{{ page.product.cover.media.url }}"
+                                             alt="{{ page.product.name }}"
+                                             title="{{ page.product.name }}"
+                                             class="product-detail-image"
+                                             loading="lazy">
+                                    {% else %}
+                                        <div class="product-image-placeholder-large">
+                                            <span class="icon icon-placeholder">
+                                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100" height="100" viewBox="0 0 552 383">
+                                                    <use xlink:href="#icons-default-placeholder" fill="#758CA3" fill-rule="evenodd"></use>
+                                                </svg>
+                                            </span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="product-info-section">
+                                    <div class="product-badge current-product">Current Product</div>
+                                    <h5 class="product-name">
+                                        <a href="{{ seoUrl('frontend.detail.page', {'productId': page.product.id}) }}">
+                                            {{ page.product.name }}
+                                        </a>
+                                    </h5>
+                                    <div class="product-quantity">Quantity: <strong>1x</strong></div>
+                                    <div class="product-price">
+                                        <span class="price-label">Unit Price:</span>
+                                        <span class="price-value">€{{ originalPrice|number_format(2, '.', ',') }}*</span>
+                                    </div>
+                                    {% if page.product.description %}
+                                        <div class="product-short-description">
+                                            {{ page.product.description|length > 100 ? page.product.description|slice(0, 100) ~ '...' : page.product.description }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {# Bundle companion products #}
+                            {% if bundle.bundleProducts is defined and bundle.bundleProducts is iterable %}
+                                {% for bundleProduct in bundle.bundleProducts %}
+                                    {% if bundleProduct.product and bundleProduct.product.id != page.product.id %}
+                                        <div class="bundle-product-card">
+                                            <div class="product-image-section">
+                                                {% if bundleProduct.product.cover and bundleProduct.product.cover.media %}
+                                                    <img src="{{ bundleProduct.product.cover.media.url }}"
+                                                         alt="{{ bundleProduct.product.name }}"
+                                                         title="{{ bundleProduct.product.name }}"
+                                                         class="product-detail-image"
+                                                         loading="lazy">
+                                                {% else %}
+                                                    <div class="product-image-placeholder-large">
+                                                        <span class="icon icon-placeholder">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100" height="100" viewBox="0 0 552 383">
+                                                                <use xlink:href="#icons-default-placeholder" fill="#758CA3" fill-rule="evenodd"></use>
+                                                            </svg>
+                                                        </span>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+
+                                            <div class="product-info-section">
+                                                <div class="product-badge bundle-product">Bundle Product</div>
+                                                <h5 class="product-name">
+                                                    <a href="{{ seoUrl('frontend.detail.page', {'productId': bundleProduct.product.id}) }}">
+                                                        {{ bundleProduct.product.name }}
+                                                    </a>
+                                                </h5>
+                                                <div class="product-quantity">Quantity: <strong>{{ bundleProduct.quantity|default(1) }}x</strong></div>
+                                                <div class="product-price">
+                                                    <span class="price-label">Unit Price:</span>
+                                                    {% if bundleProduct.product.calculatedPrice and bundleProduct.product.calculatedPrice.totalPrice %}
+                                                        <span class="price-value">€{{ bundleProduct.product.calculatedPrice.totalPrice|number_format(2, '.', ',') }}*</span>
+                                                    {% elseif bundleProduct.product.price and bundleProduct.product.price.first %}
+                                                        <span class="price-value">€{{ bundleProduct.product.price.first.gross|number_format(2, '.', ',') }}*</span>
+                                                    {% else %}
+                                                        <span class="price-value">Price on request</span>
+                                                    {% endif %}
+                                                </div>
+                                                {% if bundleProduct.product.description %}
+                                                    <div class="product-short-description">
+                                                        {{ bundleProduct.product.description|length > 100 ? bundleProduct.product.description|slice(0, 100) ~ '...' : bundleProduct.product.description }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <div class="bundle-pricing-summary">
+                            <div class="bundle-summary-container">
+                                <div class="bundle-summary-header">
+                                    <h5>Bundle Pricing Summary</h5>
+                                </div>
+
+                                <div class="pricing-breakdown">
+                                    <div class="pricing-row total-before-discount">
+                                        <span class="label">Total before discount:</span>
+                                        <span class="value">€{{ totalBundlePrice|number_format(2, '.', ',') }}*</span>
+                                    </div>
+                                    <div class="pricing-row discount-applied">
+                                        <span class="label">Bundle discount ({{ bundle.discount }}{{ bundle.discountType == 'percentage' ? '%' : '€' }}):</span>
+                                        <span class="value discount">-€{{ discountAmount|number_format(2, '.', ',') }}*</span>
+                                    </div>
+                                    <div class="pricing-row final-total">
+                                        <span class="label"><strong>Final bundle price:</strong></span>
+                                        <span class="value final"><strong>€{{ finalBundlePrice|number_format(2, '.', ',') }}*</strong></span>
+                                    </div>
+                                </div>
+                                <div class="bundle-savings-highlight">
+                                    <div class="savings-badge">
+                                        <span class="savings-text">You save: €{{ discountAmount|number_format(2, '.', ',') }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endif %}
+
+    {# Parent content - tabs and reviews #}
+    {{ parent() }}
+{% endblock %}

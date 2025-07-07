@@ -1,0 +1,27 @@
+{
+    "name": "digi-percep/bundle-products",
+    "description": "Bundle Products for Customers",
+    "type": "shopware-platform-plugin",
+    "version": "1.0.0",
+    "license": "MIT",
+    "require": {
+        "shopware/core": "~6.6.0"
+    },
+    "extra": {
+        "shopware-plugin-class": "DigiPercep\\BundleProducts\\BundleProducts",
+        "label": {
+            "de-DE": "Bundle Produkts",
+            "en-GB": "Bundle Products"
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "DigiPercep\\BundleProducts\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "DigiPercep\\BundleProducts\\Tests\\": "tests/"
+        }
+    }
+}

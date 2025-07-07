@@ -1,0 +1,214 @@
+/* Bundle Products - Offcanvas Cart Styles */
+
+/* Main bundle item container */
+.offcanvas-cart-item.bundle-item {
+  margin-top: 15px;
+  margin-bottom: 10px;
+  background: #f8fafc;
+}
+
+.bundle-products-list .product-price {
+  overflow: visible !important;
+}
+
+/* Bundle badge */
+.bundle-item .bundle-badge {
+  background: #3b82f6;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+/* Bundle info container */
+.bundle-item .bundle-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.bundle-item .bundle-info .bundle-details {
+  flex: 1;
+}
+
+/* Bundle title */
+.bundle-item .bundle-title {
+  margin: 0 0 4px 0;
+  font-weight: bold;
+  color: #1e293b;
+}
+
+/* Pricing styles */
+.bundle-item .original-price {
+  font-size: 0.8rem;
+  color: #6b7280;
+  text-decoration: line-through;
+}
+
+.bundle-item .current-price {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #059669;
+}
+
+.bundle-item .savings-amount {
+  font-size: 0.8rem;
+  color: #dc2626;
+  font-weight: bold;
+}
+
+/* Remove button */
+.bundle-item .remove-button {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.2s ease;
+}
+
+.bundle-details-container {
+  display: none;
+  margin-top: 10px;
+  padding: 10px;
+  border-top: 1px solid #eee;
+}
+
+.bundle-details-container.show {
+  display: block;
+}
+
+.contents-toggle {
+  background: none;
+  border: 1px solid #ccc;
+  padding: 5px 10px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.contents-toggle:hover {
+  background-color: #f5f5f5;
+}
+
+.bundle-item .remove-button:hover {
+  color: #dc2626;
+}
+
+/* Toggle button for bundle contents */
+.bundle-item .contents-toggle {
+  background: #e5e7eb;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 6px 10px;
+  width: 100%;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background-color 0.2s ease;
+}
+
+.bundle-item .contents-toggle:hover {
+  background: #d1d5db;
+}
+
+/* Bundle details container */
+.bundle-item .bundle-details-container {
+  display: none;
+  margin-top: 8px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 8px;
+}
+
+.bundle-item .bundle-details-container.show {
+  display: block;
+}
+
+/* Bundle product items */
+.bundle-item .bundle-product-item {
+  padding: 4px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.bundle-item .bundle-product-item:last-child {
+  border-bottom: none;
+}
+
+.bundle-item .product-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Current product indicator */
+.bundle-item .current-product-badge {
+  font-weight: bold;
+}
+
+/* Included product badge */
+.bundle-item .included-badge {
+  background: #10b981;
+  color: white;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-size: 0.7rem;
+}
+
+/* Strikethrough price for included items */
+.bundle-item .included-price {
+  text-decoration: line-through;
+  color: #6b7280;
+}
+
+/* Savings summary */
+.bundle-item .savings-summary {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
+  background: #f0fdf4;
+  padding: 6px;
+  border-radius: 4px;
+}
+
+.bundle-item .savings-row {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+}
+
+.bundle-item .savings-value {
+  color: #10b981;
+}
+
+button.btn.btn-outline-secondary.btn-sm.bundle-remove-btn.line-item-remove-button {
+  margin-left: 35px;
+}
+
+/* Quantity display */
+.bundle-item .quantity-info {
+  margin-top: 8px;
+  font-weight: bold;
+  color: #6b7280;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .bundle-item .bundle-info {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .bundle-item .remove-button {
+    align-self: flex-end;
+    margin-top: 8px;
+  }
+
+  .bundle-item .product-row {
+    flex-direction: column;
+    gap: 4px;
+  }
+}

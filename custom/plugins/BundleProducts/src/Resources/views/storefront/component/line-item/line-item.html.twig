@@ -1,0 +1,421 @@
+{# File: custom/plugins/BundleProducts/src/Resources/views/storefront/component/line-item/line-item.html.twig #}
+
+{% sw_extends '@Storefront/storefront/component/line-item/line-item.html.twig' %}
+
+{% block component_line_item %}
+    {% if lineItem.payload.isBundle is defined and lineItem.payload.isBundle == true %}
+        {# Set up variables like Shopware does #}
+        {% set label = lineItem.label|trans|sw_sanitize %}
+        {% set label = label !== '' ? label : lineItem.label %}
+        {% set displayMode = displayMode is defined ? displayMode : 'default' %}
+        {% set showRemoveButton = showRemoveButton is defined ? showRemoveButton : true %}
+        {% set lineItemClasses = 'line-item bundle-item is-' ~ displayMode %}
+        {% set showLineItemModal = controllerAction is same as('confirmPage') %}
+
+        {# BUNDLE ITEM - Following Shopware's existing bundle structure #}
+        {% if feature('ACCESSIBILITY_TWEAKS') %}
+            <li class="{{ lineItemClasses }}"
+            data-bundle-id="{{ lineItem.payload.bundleId }}"
+            data-line-item-id="{{ lineItem.id }}">
+        {% else %}
+            <div class="{{ lineItemClasses }}"
+            role="listitem"
+            data-bundle-id="{{ lineItem.payload.bundleId }}"
+            data-line-item-id="{{ lineItem.id }}">
+        {% endif %}
+
+        <div class="row line-item-row">
+            {# Product Info Section - Takes up the main left space #}
+            <div class="line-item-info">
+                <div class="row line-item-row">
+                    <div class="col-auto line-item-info-img">
+                        <div class="line-item-img-container">
+                            <div class="col-auto line-item-info-img">
+                                <div class="line-item-img-container">
+                                    <div class="line-item-image">
+                                        {% if lineItem.payload.imageUrl is defined %}
+                                            <img src="{{ lineItem.payload.imageUrl }}"
+                                                 alt="{{ lineItem.payload.imageAlt|default(lineItem.label) }}"
+                                                 class="line-item-img">
+                                        {% elseif lineItem.payload.cover and lineItem.payload.cover.url %}
+                                            <img src="{{ lineItem.payload.cover.url }}"
+                                                 alt="{{ lineItem.payload.cover.alt|default(lineItem.label) }}"
+                                                 class="line-item-img">
+                                        {% else %}
+                                            <div class="line-item-img-placeholder">
+                                                <span class="text-muted small">Bundle</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="line-item-details">
+                        <div class="line-item-details-container">
+                            {# Bundle badge #}
+                            <div class="bundle-badge">
+                                <span class="badge badge-success">Bundle Deal</span>
+                            </div>
+
+                            <div>
+                                <a href="{{ seoUrl('frontend.detail.page', {'productId': lineItem.payload.mainProductId}) }}"
+                                   class="line-item-label"
+                                   title="{{ lineItem.label }}">
+                                    Bundle - {{ lineItem.label }}
+                                </a>
+                            </div>
+
+                            {# Bundle savings display #}
+                            {% if lineItem.payload.originalPrice and lineItem.payload.savings %}
+                                <div class="pricing-container">
+                                    <div class="original-price text-muted">
+                                        <small><s>Was: {{ lineItem.payload.originalPrice|currency }}</s></small>
+                                    </div>
+                                    <div class="current-price fw-bold">
+                                        Now: {{ lineItem.price.totalPrice|currency }}
+                                    </div>
+                                    <div class="savings-amount text-success">
+                                        <small>Save {{ lineItem.payload.savings|currency }}</small>
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            <div class="line-item-product-number">
+                                Product number: {{ lineItem.payload.bundleId|slice(0, 8) }}-bundle
+                            </div>
+
+                            {# Delivery date using Shopware's standard implementation #}
+                            {% if config('core.cart.showDeliveryTime') %}
+                                {% block component_line_item_delivery_date %}
+                                    {% set deliveryPosition = null %}
+
+                                    {% if page.cart.deliveries.count > 0 %}
+                                        {% set delivery = page.cart.deliveries.first %}
+                                        {% set deliveryPosition = delivery.positions.get(lineItem.id) %}
+                                    {% endif %}
+
+                                    {% if deliveryPosition and deliveryPosition.deliveryDate %}
+                                        {% block component_line_item_delivery_date_inner %}
+                                            <div class="line-item-delivery-date">
+                                                {{ 'checkout.lineItemDeliveryDate'|trans({
+                                                    '%earliest%': deliveryPosition.deliveryDate.earliest|format_date('short', locale=app.request.locale),
+                                                    '%latest%': deliveryPosition.deliveryDate.latest|format_date('short', locale=app.request.locale)
+                                                })|sw_sanitize }}
+                                            </div>
+                                        {% endblock %}
+                                    {% endif %}
+                                {% endblock %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Quantity Column #}
+            <div class="line-item-quantity">
+                <div class="row line-item-quantity-row">
+                    <div class="line-item-quantity-select-wrapper">
+                        <div class="d-flex justify-content-sm-center justify-content-end">
+                            {{ lineItem.quantity }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Unit Price Column #}
+            <div class="line-item-unit-price">
+                <div class="line-item-unit-price-label">
+                    Unit price:
+                </div>
+                <div class="line-item-unit-price-value">
+                    {{ lineItem.price.unitPrice|currency }}
+                    <span class="line-item-unit-price-value-descriptor" aria-hidden="true"> / unit</span>
+                </div>
+            </div>
+
+            {# Total Price Column #}
+            <div class="line-item-total-price">
+                <div class="line-item-total-price-label">
+                    Subtotal:
+                </div>
+                <div class="line-item-total-price-value">
+                    {{ lineItem.price.totalPrice|currency }}
+                </div>
+            </div>
+
+            {# Remove Button Section - Fixed for both contexts #}
+            <div class="line-item-remove">
+                {% if showRemoveButton %}
+                    {% if displayMode == 'offcanvas' %}
+                        {# OFFCANVAS: Use AJAX removal #}
+                        <form action="{{ path('frontend.bundle.remove-from-cart') }}"
+                              method="post"
+                              data-form-submit-loader="true"
+                              data-form-submit-loader-options="{&quot;skipLoadingIndicator&quot;:true}"
+                              class="js-offcanvas-cart-remove-product">
+
+                            {% block bundle_line_item_remove_redirect %}
+                                <input type="hidden" name="redirectTo" value="frontend.cart.offcanvas">
+                                <input type="hidden" name="redirectParameters" value="">
+                            {% endblock %}
+
+                            {% block bundle_line_item_remove_inputs %}
+                                <input type="hidden" name="bundle-id" value="{{ lineItem.payload.bundleId }}">
+                                <input type="hidden" name="line-item-id" value="{{ lineItem.id }}">
+                            {% endblock %}
+
+                            {% block bundle_line_item_remove_button %}
+                                <button type="submit"
+                                        aria-label="{{ 'checkout.removeLineItem'|trans({ '%lineItemLabel%': lineItem.label })|striptags }}"
+                                        title="{{ 'global.default.remove'|trans }}"
+                                        data-product-id="{{ lineItem.id }}"
+                                        data-bundle-id="{{ lineItem.payload.bundleId }}"
+                                        data-line-item-id="{{ lineItem.id }}"
+                                        class="btn btn-outline-secondary btn-sm bundle-remove-btn line-item-remove-button">
+                                    {% block bundle_line_item_remove_icon %}
+                                        <span class="icon icon-x icon-sm" aria-hidden="true">
+                                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24" height="24" viewBox="0 0 24 24">
+                                                <defs>
+                                                    <path d="m10.5858 12-7.293-7.2929c-.3904-.3905-.3904-1.0237 0-1.4142.3906-.3905 1.0238-.3905 1.4143 0L12 10.5858l7.2929-7.293c.3905-.3904 1.0237-.3904 1.4142 0 .3905.3906.3905 1.0238 0 1.4143L13.4142 12l7.293 7.2929c.3904.3905.3904 1.0237 0 1.4142-.3906.3905-1.0238.3905-1.4143 0L12 13.4142l-7.2929 7.293c-.3905.3904-1.0237.3904-1.4142 0-.3905-.3906-.3905-1.0238 0-1.4143L10.5858 12z" id="icons-default-x"></path>
+                                                </defs>
+                                                <use xlink:href="#icons-default-x" fill="#758CA3" fill-rule="evenodd"></use>
+                                            </svg>
+                                        </span>
+                                    {% endblock %}
+                                </button>
+                            {% endblock %}
+                        </form>
+                    {% else %}
+                        {# CART PAGE: Use standard form submission (NO AJAX) #}
+                        {% set loaderOptions = {
+                            skipLoadingIndicator: true
+                        } %}
+
+                        <form action="{{ path('frontend.bundle.remove-from-cart') }}"
+                              method="post"
+                              data-form-submit-loader="true"
+                              data-form-submit-loader-options="{{ loaderOptions|json_encode }}">
+
+                            {% block bundle_line_item_remove_redirect_cart %}
+                                <input type="hidden" name="redirectTo" value="frontend.checkout.cart.page">
+                                <input type="hidden" name="redirectParameters" value="">
+                            {% endblock %}
+
+                            {% block bundle_line_item_remove_inputs_cart %}
+                                <input type="hidden" name="bundle-id" value="{{ lineItem.payload.bundleId }}">
+                                <input type="hidden" name="line-item-id" value="{{ lineItem.id }}">
+                            {% endblock %}
+
+                            {% block bundle_line_item_remove_button_cart %}
+                                <button type="submit"
+                                        aria-label="{{ 'checkout.removeLineItem'|trans({ '%lineItemLabel%': lineItem.label })|striptags }}"
+                                        title="{{ 'global.default.remove'|trans }}"
+                                        data-product-id="{{ lineItem.id }}"
+                                        data-bundle-id="{{ lineItem.payload.bundleId }}"
+                                        data-line-item-id="{{ lineItem.id }}"
+                                        class="btn btn-outline-secondary btn-sm line-item-remove-button">
+                                    {% block bundle_line_item_remove_icon_cart %}
+                                        <span class="icon icon-x icon-sm" aria-hidden="true">
+                                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24" height="24" viewBox="0 0 24 24">
+                                                <defs>
+                                                    <path d="m10.5858 12-7.293-7.2929c-.3904-.3905-.3904-1.0237 0-1.4142.3906-.3905 1.0238-.3905 1.4143 0L12 10.5858l7.2929-7.293c.3905-.3904 1.0237-.3904 1.4142 0 .3905.3906.3905 1.0238 0 1.4143L13.4142 12l7.293 7.2929c.3904.3905.3904 1.0237 0 1.4142-.3906.3905-1.0238.3905-1.4143 0L12 13.4142l-7.2929 7.293c-.3905.3904-1.0237.3904-1.4142 0-.3905-.3906-.3905-1.0238 0-1.4143L10.5858 12z" id="icons-default-x"></path>
+                                                </defs>
+                                                <use xlink:href="#icons-default-x" fill="#758CA3" fill-rule="evenodd"></use>
+                                            </svg>
+                                        </span>
+                                    {% endblock %}
+                                </button>
+                            {% endblock %}
+                        </form>
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            {# Bundle Children Section - Following Shopware's exact pattern #}
+            {% if lineItem.payload.bundleProducts is defined and lineItem.payload.bundleProducts|length > 0 %}
+                <div class="line-item-children nesting-level-1">
+                    <div class="container line-item-collapse-container">
+                        <div class="row line-item-collapse">
+                            <div class="col line-item-headline">
+                                <span class="line-item-headline-text">
+                                    <h6><strong>Product Bundle Contains</strong></h6>
+                                </span>
+                            </div>
+
+                            <div class="col-1 line-item-collapse-icon-container">
+                                <button class="line-item-collapse-button"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#collapse-line-item-contains-{{ lineItem.id }}-default"
+                                        aria-controls="collapse-line-item-contains-{{ lineItem.id }}-default"
+                                        aria-expanded="false">
+                                    <div class="line-item-collapse-icon">
+                                        <span class="icon icon-arrow-down icon-primary" aria-hidden="true">
+                                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16" viewBox="0 0 16 16">
+                                                <defs>
+                                                    <path id="icons-solid-arrow-down" d="M5.7071 6.2929c-.3905-.3905-1.0237-.3905-1.4142 0-.3905.3905-.3905 1.0237 0 1.4142l3 3c.3905.3905 1.0237.3905 1.4142 0l3-3c.3905-.3905.3905-1.0237 0-1.4142-.3905-.3905-1.0237-.3905-1.4142 0L8 8.5858l-2.2929-2.293z"></path>
+                                                </defs>
+                                                <use transform="matrix(-1 0 0 1 16 0)" xlink:href="#icons-solid-arrow-down" fill="#758CA3" fill-rule="evenodd"></use>
+                                            </svg>
+                                        </span>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <ul class="container line-item-children-elements list-unstyled collapse" id="collapse-line-item-contains-{{ lineItem.id }}-default">
+                        {# Current/Main product #}
+                        {% if lineItem.payload.currentProduct is defined %}
+                            <li class="line-item line-item-bundle-product is-default">
+                                <div class="row line-item-row">
+                                    <div class="line-item-info">
+                                        <div class="row line-item-row">
+                                            <div class="line-item-details">
+                                                <div class="line-item-details-container">
+                                                    <div class="line-item-label">
+                                                        {{ lineItem.payload.currentProduct.name }}
+                                                        <span class="badge bundle-badge badge-sm ms-2">Main Product</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="line-item-quantity">
+                                        <div class="row line-item-quantity-row">
+                                            <div class="line-item-quantity-select-wrapper">
+                                                <div class="d-flex justify-content-sm-center justify-content-end">1</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="line-item-unit-price">
+                                        <div class="line-item-unit-price-label">Unit price:</div>
+                                        <div class="line-item-unit-price-value">
+                                            {{ lineItem.payload.currentProduct.totalPrice|currency }}
+                                            <span class="line-item-unit-price-value-descriptor" aria-hidden="true"> / unit</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="line-item-total-price">
+                                        <div class="line-item-total-price-label">Subtotal:</div>
+                                        <div class="line-item-total-price-value">
+                                            {{ lineItem.payload.currentProduct.totalPrice|currency }}
+                                        </div>
+                                    </div>
+
+                                    <div class="line-item-remove"></div>
+                                </div>
+                            </li>
+                        {% endif %}
+
+                        {# Bundle companion products #}
+                        {% for product in lineItem.payload.bundleProducts %}
+                            <li class="line-item line-item-bundle-product is-default">
+                                <div class="row line-item-row">
+                                    <div class="line-item-info">
+                                        <div class="row line-item-row">
+                                            <div class="line-item-details">
+                                                <div class="line-item-details-container">
+                                                    <div class="line-item-label">
+                                                        {{ product.name }}
+                                                        <span class="badge bundle-badge badge-sm ms-2">Bundle Product</span>
+                                                    </div>
+                                                    {% if product.id is defined %}
+                                                        <div class="line-item-product-number">
+                                                            Product number: {{ product.id|slice(0, 8) }}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="line-item-quantity">
+                                        <div class="row line-item-quantity-row">
+                                            <div class="line-item-quantity-select-wrapper">
+                                                <div class="d-flex justify-content-sm-center justify-content-end">{{ product.quantity|default(1) }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="line-item-unit-price">
+                                        <div class="line-item-unit-price-label">Unit price:</div>
+                                        <div class="line-item-unit-price-value">
+                                            {% if product.unitPrice is defined %}
+                                                {{ product.unitPrice|currency }}
+                                            {% else %}
+                                                {{ product.totalPrice|currency }}
+                                            {% endif %}
+                                            <span class="line-item-unit-price-value-descriptor" aria-hidden="true"> / unit</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="line-item-total-price">
+                                        <div class="line-item-total-price-label">Subtotal:</div>
+                                        <div class="line-item-total-price-value">
+                                            {{ product.totalPrice|currency }}
+                                        </div>
+                                    </div>
+
+                                    <div class="line-item-remove"></div>
+                                </div>
+                            </li>
+                        {% endfor %}
+
+                        {# Bundle discount line item (if any savings) #}
+                        {% if lineItem.payload.savings and lineItem.payload.savings > 0 %}
+                            <li class="line-item line-item-bundle-discount is-default">
+                                <div class="row line-item-row">
+                                    <div class="line-item-info">
+                                        <div class="row line-item-row">
+                                            <div class="line-item-details">
+                                                <div class="line-item-details-container">
+                                                    <div class="line-item-label">
+                                                        Bundle discount
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="line-item-quantity"></div>
+
+                                    <div class="line-item-unit-price">
+                                        <div class="line-item-unit-price-label">Unit price:</div>
+                                        <div class="line-item-unit-price-value">
+                                            -{{ lineItem.payload.savings|currency }}
+                                            <span class="line-item-unit-price-value-descriptor" aria-hidden="true"> / unit</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="line-item-total-price">
+                                        <div class="line-item-total-price-label">Subtotal:</div>
+                                        <div class="line-item-total-price-value">
+                                            − {{ lineItem.payload.savings|currency }}
+                                        </div>
+                                    </div>
+
+                                    <div class="line-item-remove"></div>
+                                </div>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+
+        {% if feature('ACCESSIBILITY_TWEAKS') %}
+            </li>
+        {% else %}
+            </div>
+        {% endif %}
+
+    {% else %}
+        {# REGULAR ITEM - Use default Shopware rendering #}
+        {# CRITICAL: Call parent() to ensure normal products are displayed correctly #}
+        {{ parent() }}
+    {% endif %}
+{% endblock %}

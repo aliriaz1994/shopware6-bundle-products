@@ -1,0 +1,177 @@
+{# File: custom/plugins/BundleProducts/src/Resources/views/storefront/component/checkout/offcanvas-cart.html.twig #}
+
+{% sw_extends '@Storefront/storefront/component/checkout/offcanvas-cart.html.twig' %}
+
+{% block component_offcanvas_cart_item %}
+    {% if lineItem.payload.isBundle is defined and lineItem.payload.isBundle %}
+        {# BUNDLE ITEM - Custom bundle rendering with removal support #}
+        <div class="offcanvas-cart-item bundle-item"
+        data-bundle-id="{{ lineItem.payload.bundleId }}"
+        data-line-item-id="{{ lineItem.id }}">
+
+        {# Bundle badge #}
+        <div class="bundle-badge">
+            <span class="badge badge-success">Bundle Deal</span>
+        </div>
+
+        {# NEW: Image column #}
+        <div class="line-item-info-img">
+            <div class="line-item-img-container">
+                {% if lineItem.cover is defined and lineItem.cover %}
+                    {% sw_thumbnails 'offcanvas-cart-item-image-thumbnails' with {
+                        media: lineItem.cover
+                    } %}
+                {% elseif lineItem.data.cover is defined and lineItem.data.cover %}
+                    {% sw_thumbnails 'offcanvas-cart-item-image-thumbnails' with {
+                        media: lineItem.data.cover
+                    } %}
+                {% elseif lineItem.payload.imageUrl is defined and lineItem.payload.imageUrl %}
+                    <img src="{{ lineItem.payload.imageUrl }}"
+                         alt="{{ lineItem.payload.imageAlt|default(lineItem.label) }}"
+                         class="offcanvas-cart-item-img line-item-img">
+                {% elseif lineItem.payload.cover and lineItem.payload.cover.url %}
+                    <img src="{{ lineItem.payload.cover.url }}"
+                         alt="{{ lineItem.payload.cover.alt|default(lineItem.label) }}"
+                         class="offcanvas-cart-item-img line-item-img">
+                {% else %}
+                    <div class="offcanvas-cart-item-img-placeholder line-item-img">
+                        <span>Bundle</span>
+                    </div>
+                {% endif %}
+            </div>
+
+            {# Standard Shopware line item structure #}
+            <div class="row offcanvas-cart-item-container">
+                <div class="col-7 col-sm-8">
+                    {# Bundle info #}
+                    <div class="bundle-details">
+                        <h5 class="bundle-title">Bundle - {{ lineItem.label }}</h5>
+
+                        {# Pricing display #}
+                        {% if lineItem.payload.originalPrice and lineItem.payload.savings %}
+                            <div class="pricing-container">
+                                <div class="original-price text-muted">
+                                    <small><s>Was: {{ lineItem.payload.originalPrice|currency }}</s></small>
+                                </div>
+                                <div class="current-price fw-bold">
+                                    Now: {{ lineItem.price.totalPrice|currency }}
+                                </div>
+                                <div class="savings-amount text-success">
+                                    <small>Save {{ lineItem.payload.savings|currency }}</small>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="current-price fw-bold">
+                                {{ lineItem.price.totalPrice|currency }}
+                            </div>
+                        {% endif %}
+
+                        {# Quantity info #}
+                        <div class="quantity-info">
+                            <small class="text-muted">Quantity: {{ lineItem.quantity }}</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-5 col-sm-4">
+                    <div class="row h-100">
+                        {# Remove button column - Using Shopware's exact standard structure #}
+                        <div class="col-12 col-sm-6 justify-content-end align-items-center">
+                            {# Shopware-style bundle removal button #}
+                            <button type="button"
+                                    class="btn btn-outline-secondary btn-sm bundle-remove-btn line-item-remove-button is_default"
+                                    data-bundle-id="{{ lineItem.payload.bundleId }}"
+                                    data-line-item-id="{{ lineItem.id }}"
+                                    aria-label="Remove {{ lineItem.label }} from shopping cart"
+                                    title="Remove">
+                                <span class="icon icon-x icon-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                                         width="24" height="24" viewBox="0 0 24 24">
+                                        <defs>
+                                            <path d="m10.5858 12-7.293-7.2929c-.3904-.3905-.3904-1.0237 0-1.4142.3906-.3905 1.0238-.3905 1.4143 0L12 10.5858l7.2929-7.293c.3905-.3904 1.0237-.3904 1.4142 0 .3905.3906.3905 1.0238 0 1.4143L13.4142 12l7.293 7.2929c.3904.3905.3904 1.0237 0 1.4142-.3906.3905-1.0238.3905-1.4143 0L12 13.4142l-7.2929 7.293c-.3905.3904-1.0237.3904-1.4142 0-.3905-.3906-.3905-1.0238 0-1.4143L10.5858 12z"
+                                                  id="icons-default-x"></path>
+                                        </defs>
+                                        <use xlink:href="#icons-default-x" fill="currentColor"
+                                             fill-rule="evenodd"></use>
+                                    </svg>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Bundle contents toggle section #}
+            {% if lineItem.payload.bundleProducts is defined and lineItem.payload.bundleProducts|length > 0 %}
+                <div class="bundle-contents-section mt-3">
+                    <button type="button"
+                            class="bundle-contents-toggle btn btn-link btn-sm p-0"
+                            data-target="bundle-details-{{ lineItem.id }}"
+                            data-item-count="{{ lineItem.payload.bundleProducts|length }}"
+                            data-bundle-toggle="true">
+                        <span class="toggle-icon">+</span>
+                        Show {{ lineItem.payload.bundleProducts|length }} included items
+                    </button>
+
+                    {# Bundle contents details #}
+                    <div id="bundle-details-{{ lineItem.id }}" class="bundle-details-container mt-2"
+                         style="display: none;">
+                        <div class="bundle-products-list">
+                            <strong class="d-block mb-2">Bundle includes:</strong>
+
+                            {# Current product (the one actually in cart) #}
+                            {% if lineItem.payload.currentProduct is defined %}
+                                <div class="bundle-product-item d-flex justify-content-between align-items-center py-1">
+                                    <div class="product-info">
+                                        <span class="product-name">{{ lineItem.payload.currentProduct.name }}</span>
+                                        <span class="badge badge-primary badge-sm ms-2">In Cart</span>
+                                    </div>
+                                    <div class="product-price">
+                                        {{ lineItem.price.totalPrice|currency }}
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            {# Additional bundled products (included for free/discount) #}
+                            {% for product in lineItem.payload.bundleProducts %}
+                                <div class="bundle-product-item d-flex justify-content-between align-items-center py-1">
+                                    <div class="product-info">
+                                        <span class="product-name">{{ product.name }}</span>
+                                        {% if product.quantity is defined and product.quantity > 1 %}
+                                            <span class="quantity-badge badge badge-secondary badge-sm ms-1">x{{ product.quantity }}</span>
+                                        {% endif %}
+                                        <span class="badge badge-success badge-sm ms-2">Included</span>
+                                    </div>
+                                    <div class="product-price text-muted">
+                                        <small><s>{{ product.totalPrice|currency }}</s></small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+
+                            {# Bundle savings summary #}
+                            {% if lineItem.payload.originalPrice and lineItem.payload.savings %}
+                                <hr class="my-2">
+                                <div class="savings-summary d-flex justify-content-between align-items-center">
+                                    <span class="savings-label text-success fw-bold">Your savings:</span>
+                                    <span class="savings-value text-success fw-bold">{{ lineItem.payload.savings|currency }}</span>
+                                </div>
+                            {% endif %}
+
+                            {# Bundle description if available #}
+                            {% if lineItem.payload.bundleDescription is defined %}
+                                <div class="bundle-description mt-2">
+                                    <small class="text-muted">{{ lineItem.payload.bundleDescription }}</small>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+
+    {% else %}
+        {# REGULAR ITEM - Use default Shopware rendering #}
+        {{ parent() }}
+    {% endif %}
+{% endblock %}

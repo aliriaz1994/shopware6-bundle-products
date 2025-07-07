@@ -1,0 +1,136 @@
+// Import bundle display component
+@import "component/bundle-checkout-cart";
+@import "component/bundle-minicart";
+@import "component/bundle-product-page";
+
+.product-detail-bundle-list {
+  margin-top: 2rem;
+
+  .bundle-item {
+    margin-bottom: 1.5rem;
+
+    .bundle-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+
+      .bundle-title {
+        margin: 0;
+        font-size: 1.25rem;
+      }
+
+      .bundle-discount {
+        font-size: 1.1rem;
+      }
+    }
+
+    .bundle-description {
+      margin-bottom: 1rem;
+      color: #666;
+    }
+
+    .bundle-products {
+      border-top: 1px solid #e9ecef;
+      padding-top: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .bundle-product-item {
+      display: flex;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #f8f9fa;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &.is-optional {
+        .bundle-product-checkbox {
+          margin-right: 1rem;
+        }
+      }
+
+      .bundle-product-image {
+        width: 80px;
+        margin-right: 1rem;
+
+        img {
+          width: 100%;
+          height: auto;
+        }
+      }
+
+      .bundle-product-info {
+        flex: 1;
+
+        .bundle-product-name {
+          font-weight: 500;
+          margin-bottom: 0.25rem;
+        }
+
+        .bundle-product-price {
+          color: #666;
+          font-size: 0.9rem;
+        }
+      }
+    }
+
+    .bundle-footer {
+      border-top: 1px solid #e9ecef;
+      padding-top: 1rem;
+
+      .bundle-price-info {
+        margin-bottom: 1rem;
+
+        > div {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 0.5rem;
+
+          .price-label {
+            color: #666;
+          }
+
+          .price-value {
+            font-weight: 500;
+          }
+        }
+
+        .bundle-original-price {
+          .price-value {
+            text-decoration: line-through;
+            color: #999;
+          }
+        }
+
+        .bundle-total-price {
+          font-size: 1.1rem;
+
+          .price-value {
+            color: #28a745;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Product listing badge
+.product-box {
+  position: relative;
+
+  .bundle-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #ff3d58;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    z-index: 10;
+  }
+}

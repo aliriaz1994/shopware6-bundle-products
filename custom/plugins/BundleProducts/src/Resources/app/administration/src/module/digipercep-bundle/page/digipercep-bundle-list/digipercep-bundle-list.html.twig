@@ -1,0 +1,86 @@
+{% block digipercep_bundle_list %}
+    <sw-page class="digipercep-bundle-list">
+        <template #smart-bar-header>
+            <h2>
+                Bundles
+                <span v-if="!isLoading" class="sw-page__smart-bar-amount">
+                    ({{ total }})
+                </span>
+            </h2>
+        </template>
+
+        <template #smart-bar-actions>
+            <sw-button
+                    variant="primary"
+                    :routerLink="{ name: 'digipercep.bundle.create' }">
+                Add Bundle
+            </sw-button>
+            <sw-button @click="onRefresh">
+                Refresh
+            </sw-button>
+        </template>
+
+        <template #content>
+            <div class="digipercep-bundle-list__content">
+                <sw-loader v-if="isLoading"></sw-loader>
+
+                <sw-data-grid
+                        v-else-if="bundles.length > 0"
+                        :dataSource="bundles"
+                        :columns="columns"
+                        :showSelection="false"
+                        :showActions="true"
+                        :isLoading="isLoading"
+                        identifier="digipercep-bundle-list">
+
+                    <template #column-discount="{ item }">
+                        <span v-if="item.discount">
+                            {{ item.discount }}{{ item.discountType === 'percentage' ? '%' : '' }}
+                        </span>
+                        <span v-else>-</span>
+                    </template>
+
+                    <template #column-active="{ item }">
+                        <div class="sw-data-grid__cell-content" style="justify-content: center; display: flex;">
+                            <sw-icon
+                                    :name="item.active ? 'regular-checkmark-xs' : 'regular-times-s'"
+                                    size="small"
+                                    :class="item.active ? 'bundle-status-active' : 'bundle-status-inactive'">
+                            </sw-icon>
+                        </div>
+                    </template>
+
+                    <template #column-createdAt="{ item }">
+                        <span>{{ formatDate(item.createdAt) }}</span>
+                    </template>
+
+                    <template #actions="{ item }">
+                        <sw-context-menu-item
+                                :routerLink="{ name: 'digipercep.bundle.detail', params: { id: item.id } }">
+                            Edit
+                        </sw-context-menu-item>
+                        <sw-context-menu-item
+                                variant="danger"
+                                @click="onDeleteItem(item.id)">
+                            Delete
+                        </sw-context-menu-item>
+                    </template>
+                </sw-data-grid>
+
+                <sw-empty-state
+                        v-else-if="!isLoading"
+                        title="No bundles yet"
+                        icon="default-shopping-paper-bag-product"
+                        subline="No bundles have been created yet.">
+                    <template #actions>
+                        <sw-button
+                                variant="primary"
+                                :routerLink="{ name: 'digipercep.bundle.create' }">
+                            Add Bundle
+                        </sw-button>
+                    </template>
+                </sw-empty-state>
+            </div>
+        </template>
+    </sw-page>
+{% endblock %}

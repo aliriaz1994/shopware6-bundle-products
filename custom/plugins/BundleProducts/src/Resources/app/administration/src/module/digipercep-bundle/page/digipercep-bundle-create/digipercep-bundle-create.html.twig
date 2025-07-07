@@ -1,0 +1,80 @@
+{% block digipercep_bundle_create %}
+    <sw-page class="digipercep-bundle-create">
+        <template #smart-bar-header>
+            <h2>{{ $tc('digipercep-bundle.create.title') }}</h2>
+        </template>
+
+        <template #smart-bar-actions>
+            <sw-button @click="onCancel">
+                {{ $tc('digipercep-bundle.create.buttonCancel') }}
+            </sw-button>
+            <sw-button-process
+                    :is-loading="isLoading"
+                    :process-success="isSaveSuccessful"
+                    variant="primary"
+                    @process-finish="saveFinish"
+                    @click="onSave">
+                {{ $tc('digipercep-bundle.create.buttonSave') }}
+            </sw-button-process>
+        </template>
+
+        <template #content>
+            <sw-card-view>
+                <sw-card :title="$tc('digipercep-bundle.create.cardTitle')">
+                    <sw-container columns="repeat(auto-fit, minmax(250px, 1fr))" gap="0 30px">
+                        <sw-text-field
+                                v-model:value="formData.name"
+                                :label="$tc('digipercep-bundle.create.labelName')"
+                                :placeholder="$tc('digipercep-bundle.create.placeholderName')"
+                                required>
+                        </sw-text-field>
+
+                        <sw-number-field
+                                v-model:value="formData.discount"
+                                :label="$tc('digipercep-bundle.create.labelDiscount')"
+                                :min="0"
+                                :max="formData.discountType === 'percentage' ? 100 : null"
+                                :suffix="formData.discountType === 'percentage' ? '%' : ''"
+                                :step="0.01"
+                                :digits="2"
+                                required>
+                        </sw-number-field>
+
+                        <sw-single-select
+                                v-model:value="formData.discountType"
+                                :label="$tc('digipercep-bundle.create.labelDiscountType')"
+                                :options="discountTypeOptions">
+                        </sw-single-select>
+
+                        <sw-single-select
+                                v-model:value="formData.displayMode"
+                                :label="$tc('digipercep-bundle.create.labelDisplayMode')"
+                                :options="displayModeOptions">
+                        </sw-single-select>
+
+                        <sw-number-field
+                                v-model:value="formData.priority"
+                                :label="$tc('digipercep-bundle.create.labelPriority')"
+                                :min="0"
+                                :step="1"
+                                :digits="0">
+                        </sw-number-field>
+                    </sw-container>
+
+                    <sw-container columns="repeat(auto-fit, minmax(250px, 1fr))" gap="0 30px">
+                        <sw-switch-field
+                                v-model="formData.active"
+                                :label="$tc('digipercep-bundle.create.labelActive')">
+                        </sw-switch-field>
+
+                        <sw-switch-field
+                                v-model="formData.isSelectable"
+                                :label="$tc('digipercep-bundle.create.labelSelectable')"
+                                :helpText="$tc('digipercep-bundle.create.helpTextSelectable')">
+                        </sw-switch-field>
+                    </sw-container>
+                </sw-card>
+            </sw-card-view>
+        </template>
+    </sw-page>
+{% endblock %}

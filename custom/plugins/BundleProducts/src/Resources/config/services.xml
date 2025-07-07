@@ -1,0 +1,109 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <!-- Entity Definitions -->
+        <service id="DigiPercep\BundleProducts\Core\Content\Bundle\BundleDefinition">
+            <tag name="shopware.entity.definition" entity="digipercep_bundle"/>
+        </service>
+
+        <service id="DigiPercep\BundleProducts\Core\Content\Bundle\Aggregate\BundleProduct\BundleProductDefinition">
+            <tag name="shopware.entity.definition" entity="digipercep_bundle_product"/>
+        </service>
+
+        <service id="DigiPercep\BundleProducts\Core\Content\ProductBundle\ProductBundleDefinition">
+            <tag name="shopware.entity.definition" entity="digipercep_product_bundle"/>
+        </service>
+
+        <!-- Product Extension -->
+        <service id="DigiPercep\BundleProducts\Extension\Content\Product\ProductExtension">
+            <tag name="shopware.entity.extension"/>
+        </service>
+
+        <!-- Services -->
+        <service id="DigiPercep\BundleProducts\Service\BundleService">
+            <argument type="service" id="digipercep_bundle.repository"/>
+            <argument type="service" id="digipercep_bundle_product.repository"/>
+            <argument type="service" id="digipercep_product_bundle.repository"/>
+            <argument type="service" id="product.repository"/>
+            <argument type="service" id="Shopware\Core\Checkout\Cart\Price\QuantityPriceCalculator"/>
+            <argument type="service" id="Shopware\Core\System\Currency\CurrencyFormatter"/>
+        </service>
+
+        <service id="DigiPercep\BundleProducts\Service\BundleSyncService">
+            <argument type="service" id="digipercep_product_bundle.repository"/>
+        </service>
+
+        <service id="DigiPercep\BundleProducts\Service\BundlePriceCalculator">
+            <argument type="service" id="Shopware\Core\Checkout\Cart\Price\QuantityPriceCalculator"/>
+            <argument type="service" id="DigiPercep\BundleProducts\Service\BundleService"/>
+            <argument type="service" id="logger"/>
+        </service>
+
+        <service id="DigiPercep\BundleProducts\Service\ConfigService">
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+        </service>
+
+        <service id="DigiPercep\BundleProducts\Service\CustomFieldBundleService">
+            <argument type="service" id="product.repository"/>
+            <argument type="service" id="digipercep_bundle.repository"/>
+            <argument type="service" id="sales_channel.product.repository"/>
+            <argument type="service" id="DigiPercep\BundleProducts\Service\BundleSyncService"/>
+        </service>
+
+        <!-- Bundle Assignment Controller -->
+        <service id="DigiPercep\BundleProducts\Administration\Controller\BundleController" public="true">
+            <argument type="service" id="digipercep_bundle.repository"/>
+            <argument type="service" id="digipercep_bundle_product.repository"/>
+            <argument type="service" id="product.repository"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
+        <service id="DigiPercep\BundleProducts\Administration\Controller\BundleProductController" public="true">
+            <argument type="service" id="digipercep_product_bundle.repository"/>
+            <argument type="service" id="digipercep_bundle.repository"/>
+            <argument type="service" id="product.repository"/>
+            <argument type="service" id="DigiPercep\BundleProducts\Service\CustomFieldBundleService"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
+        <service id="DigiPercep\BundleProducts\Administration\Controller\ProductBundleController" public="true">
+            <argument type="service" id="DigiPercep\BundleProducts\Service\BundleSyncService"/>
+            <tag name="controller.service_arguments"/>
+        </service>
+
+        <!-- Storefront Controllers -->
+        <service id="DigiPercep\BundleProducts\Storefront\Controller\BundleController" public="true">
+            <argument type="service" id="DigiPercep\BundleProducts\Service\BundleService"/>
+            <argument type="service" id="Shopware\Core\Checkout\Cart\SalesChannel\CartService"/>
+            <argument type="service" id="logger"/>
+            <argument type="service" id="product.repository"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
+        <!-- Event Subscribers -->
+        <service id="DigiPercep\BundleProducts\Storefront\Page\Product\Subscriber\ProductPageLoadedSubscriber">
+            <argument type="service" id="DigiPercep\BundleProducts\Service\BundleService"/>
+            <argument type="service" id="DigiPercep\BundleProducts\Service\CustomFieldBundleService"/>
+            <argument type="service" id="digipercep_bundle.repository"/>
+            <argument type="service" id="sales_channel.product.repository"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <!-- Bundle Price Protector - Protect bundle prices from being overridden -->
+        <service id="DigiPercep\BundleProducts\Core\Checkout\Cart\BundlePriceProtector">
+            <argument type="service" id="logger"/>
+            <!-- Run LATE to protect prices after other processors -->
+            <tag name="shopware.cart.processor" priority="-1000"/>
+        </service>
+    </services>
+</container>
