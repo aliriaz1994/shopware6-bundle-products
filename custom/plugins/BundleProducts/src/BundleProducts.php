@@ -64,9 +64,8 @@ class BundleProducts extends Plugin
 
             // Drop tables in correct dependency order (child tables first, then parent)
             $tables = [
-                'digipercep_product_bundle',  // Has FK to both bundle and product
-                'digipercep_bundle_product',  // Has FK to both bundle and product
-                'digipercep_bundle'           // Parent table
+                'digipercep_bundle_product',
+                'digipercep_bundle'
             ];
 
             foreach ($tables as $tableName) {

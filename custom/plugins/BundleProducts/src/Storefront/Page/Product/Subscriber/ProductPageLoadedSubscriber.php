@@ -78,13 +78,6 @@ class ProductPageLoadedSubscriber implements EventSubscriberInterface
         // Add extensions to page
         $page->addExtension('bundleAssignments', $updatedBundleAssignments);
         $page->addExtension('bundlesForDisplay', new ArrayStruct($bundlesForDisplay));
-
-        // Keep the original bundles extension for backward compatibility
-        $bundles = $this->bundleService->getBundlesForProduct(
-            $product->getId(),
-            $salesChannelContext
-        );
-        $page->addExtension('bundles', $bundles);
     }
 
     private function loadBundleWithProducts(string $bundleId, $salesChannelContext)

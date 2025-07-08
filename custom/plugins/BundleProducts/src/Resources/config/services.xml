@@ -14,22 +14,13 @@
             <tag name="shopware.entity.definition" entity="digipercep_bundle_product"/>
         </service>
 
-        <service id="DigiPercep\BundleProducts\Core\Content\ProductBundle\ProductBundleDefinition">
-            <tag name="shopware.entity.definition" entity="digipercep_product_bundle"/>
-        </service>
-
-        <!-- Product Extension -->
-        <service id="DigiPercep\BundleProducts\Extension\Content\Product\ProductExtension">
-            <tag name="shopware.entity.extension"/>
-        </service>
-
         <!-- Services -->
         <service id="DigiPercep\BundleProducts\Service\BundleService">
             <argument type="service" id="digipercep_bundle.repository"/>
         </service>
 
         <service id="DigiPercep\BundleProducts\Service\BundleSyncService">
-            <argument type="service" id="digipercep_product_bundle.repository"/>
+            <argument type="service" id="digipercep_bundle_product.repository"/>
         </service>
 
         <service id="DigiPercep\BundleProducts\Service\BundlePriceCalculator">
@@ -60,7 +51,7 @@
         </service>
 
         <service id="DigiPercep\BundleProducts\Administration\Controller\BundleProductController" public="true">
-            <argument type="service" id="digipercep_product_bundle.repository"/>
+            <argument type="service" id="digipercep_bundle_product.repository"/>
             <argument type="service" id="digipercep_bundle.repository"/>
             <argument type="service" id="product.repository"/>
             <argument type="service" id="DigiPercep\BundleProducts\Service\CustomFieldBundleService"/>

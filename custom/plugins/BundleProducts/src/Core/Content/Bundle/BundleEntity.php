@@ -5,7 +5,6 @@ namespace DigiPercep\BundleProducts\Core\Content\Bundle;
 use Shopware\Core\Framework\DataAbstractionLayer\Entity;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityIdTrait;
 use DigiPercep\BundleProducts\Core\Content\Bundle\Aggregate\BundleProduct\BundleProductCollection;
-use DigiPercep\BundleProducts\Core\Content\ProductBundle\ProductBundleCollection;
 
 class BundleEntity extends Entity
 {
@@ -18,7 +17,6 @@ class BundleEntity extends Entity
     protected bool $active = true;
     protected int $priority = 0;
     protected ?BundleProductCollection $bundleProducts = null;
-    protected ?ProductBundleCollection $productBundles = null;
 
     public function getName(): ?string
     {
@@ -78,15 +76,5 @@ class BundleEntity extends Entity
     public function setBundleProducts(?BundleProductCollection $bundleProducts): void
     {
         $this->bundleProducts = $bundleProducts;
-    }
-
-    public function getProductBundles(): ?ProductBundleCollection
-    {
-        return $this->productBundles;
-    }
-
-    public function setProductBundles(?ProductBundleCollection $productBundles): void
-    {
-        $this->productBundles = $productBundles;
     }
 }

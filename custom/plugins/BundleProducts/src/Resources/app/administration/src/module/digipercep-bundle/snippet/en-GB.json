@@ -1,7 +1,7 @@
 {
   "digipercep-bundle": {
     "general": {
-      "mainMenuItemGeneral": "Bundle Products"
+      "mainMenuItemGeneral": "Bundles"
     },
     "create": {
       "title": "Create Bundle",

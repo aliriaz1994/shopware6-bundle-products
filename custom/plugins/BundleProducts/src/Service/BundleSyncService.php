@@ -2,7 +2,6 @@
 
 namespace DigiPercep\BundleProducts\Service;
 
-use DigiPercep\BundleProducts\Core\Content\ProductBundle\ProductBundleEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -45,7 +44,6 @@ class BundleSyncService
 
         $result = [];
         foreach ($productBundles->getEntities() as $productBundle) {
-            /** @var ProductBundleEntity $productBundle */
             $result[] = [
                 'bundleId' => $productBundle->getBundleId(),
                 'position' => $productBundle->getPosition(),

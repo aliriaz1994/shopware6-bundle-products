@@ -17,7 +17,6 @@ use Shopware\Core\Framework\DataAbstractionLayer\Field\DateTimeField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\OneToManyAssociationField;
 use Shopware\Core\Framework\DataAbstractionLayer\FieldCollection;
 use DigiPercep\BundleProducts\Core\Content\Bundle\Aggregate\BundleProduct\BundleProductDefinition;
-use DigiPercep\BundleProducts\Core\Content\ProductBundle\ProductBundleDefinition;
 
 class BundleDefinition extends EntityDefinition
 {
@@ -68,10 +67,6 @@ class BundleDefinition extends EntityDefinition
 
             // Associations - mark as ApiAware for API access
             (new OneToManyAssociationField('bundleProducts', BundleProductDefinition::class, 'bundle_id'))
-                ->addFlags(new ApiAware(), new CascadeDelete()),
-
-            // Product bundle association
-            (new OneToManyAssociationField('productBundles', ProductBundleDefinition::class, 'bundle_id'))
                 ->addFlags(new ApiAware(), new CascadeDelete()),
         ]);
     }
