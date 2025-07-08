@@ -1,0 +1,99 @@
+/* File: custom/plugins/BundleProducts/src/Resources/app/storefront/src/scss/base.scss */
+
+/* Bundle Badge Styles - Same for both Product Page and Category Pages */
+.product-image-bundle-badge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 15;
+
+  .badge-image-overlay {
+    background: linear-gradient(135deg, #20c997, #28a745);
+    color: white;
+    font-weight: 600;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+
+    .bundle-icon {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    .bundle-count-small {
+      font-size: 0.75rem;
+      opacity: 0.9;
+      margin-left: 0.125rem;
+    }
+
+    &:hover {
+      background: linear-gradient(135deg, #20c997, #28a745);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+    }
+  }
+}
+
+/* Product Detail Page - Larger badge on images */
+.product-detail-media {
+  position: relative;
+
+  .product-image-bundle-badge {
+    top: 1rem;
+    left: 1rem;
+
+    .badge-image-overlay {
+      padding: 0.5rem 0.875rem;
+      font-size: 0.875rem;
+    }
+  }
+}
+
+/* Category/Listing Pages - Smaller badge on product cards */
+.product-box {
+  position: relative;
+
+  .product-badges {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    pointer-events: none;
+
+    > div {
+      pointer-events: auto;
+    }
+
+    .product-image-bundle-badge {
+      position: relative;
+      top: 0;
+      left: 0;
+
+      .badge-image-overlay {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+
+        .bundle-icon {
+          width: 12px;
+          height: 12px;
+        }
+
+        .bundle-count-small {
+          font-size: 0.6875rem;
+        }
+      }
+    }
+  }
+}

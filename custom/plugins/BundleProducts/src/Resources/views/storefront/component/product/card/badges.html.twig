@@ -1,0 +1,92 @@
+{# File: custom/plugins/BundleProducts/src/Resources/views/storefront/component/product/card/badges.html.twig #}
+{# CONSERVATIVE VERSION - Only shows bundle badge when very specific conditions are met #}
+
+{% sw_extends '@Storefront/storefront/component/product/card/badges.html.twig' %}
+
+{% block component_product_badges %}
+    <div class="product-badges">
+        {% block component_product_badges_discount %}
+            {% set price = product.calculatedPrice %}
+            {% if product.calculatedPrices.count > 0 %}
+                {% set price = product.calculatedPrices.last %}
+            {% endif %}
+
+            {% set listPrice = price.listPrice.percentage > 0 %}
+            {% set hasRange = product.calculatedPrices.count > 1 %}
+
+            {% set displayParent = product.variantListingConfig.displayParent and product.parentId === null %}
+            {% if displayParent %}
+                {% set displayFromVariants = displayParent and price.unitPrice !== product.calculatedCheapestPrice.unitPrice %}
+            {% endif %}
+
+            {% if listPrice and not hasRange and not displayFromVariants %}
+                <div class="badge bg-danger badge-discount">
+                    <span>&#37;</span>
+                </div>
+            {% endif %}
+        {% endblock %}
+
+        {% block component_product_badges_topseller %}
+            {% if product.markAsTopseller %}
+                <div>
+                    <span class="badge bg-warning badge-topseller">{{ 'listing.boxLabelTopseller'|trans|sw_sanitize }}</span>
+                </div>
+            {% endif %}
+        {% endblock %}
+
+        {% block component_product_badges_new %}
+            {% if product.isNew %}
+                <div>
+                    <span class="badge bg-success badge-new">{{ 'listing.boxLabelNew'|trans|sw_sanitize }}</span>
+                </div>
+            {% endif %}
+        {% endblock %}
+
+        {% block component_product_badges_bundle %}
+            {# CONSERVATIVE BUNDLE DETECTION #}
+            {% set hasActiveBundle = false %}
+            {% set bundleCount = 0 %}
+
+            {% if product.customFields is defined and product.customFields is not empty %}
+                {% set bundleFieldNames = ['bundle_1', 'bundle_2', 'bundle_3'] %}
+
+                {% for bundleFieldName in bundleFieldNames %}
+                    {% if product.customFields[bundleFieldName] is defined %}
+                        {% set bundleData = product.customFields[bundleFieldName] %}
+                        {% set isValidBundle = false %}
+
+                        {% if bundleData is not iterable %}
+                            {% if bundleData is not same as(null) and
+                                bundleData is not same as('') and
+                                bundleData is not same as(false) and
+                                bundleData is not same as(0) and
+                                bundleData is not same as('0') %}
+                                    {% set isValidBundle = true %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if isValidBundle %}
+                            {% set hasActiveBundle = true %}
+                            {% set bundleCount = bundleCount + 1 %}
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+
+            {# Only show bundle badge if we found valid bundle data #}
+            {% if hasActiveBundle %}
+                <div class="product-image-bundle-badge">
+                    <span class="badge badge-bundle badge-image-overlay">
+                        <svg class="bundle-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2L2 7V17L12 22L22 17V7L12 2ZM12 4.41L19.09 8L12 11.59L4.91 8L12 4.41ZM4 9.5L11 13.09V20.5L4 16.91V9.5ZM13 20.5V13.09L20 9.5V16.91L13 20.5Z"/>
+                        </svg>
+                        Bundle
+                        {% if bundleCount > 1 %}
+                            <span class="bundle-count-small">({{ bundleCount }})</span>
+                        {% endif %}
+                    </span>
+                </div>
+            {% endif %}
+        {% endblock %}
+    </div>
+{% endblock %}
