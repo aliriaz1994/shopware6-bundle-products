@@ -16,7 +16,7 @@ use DigiPercep\BundleProducts\Core\Content\Bundle\BundleDefinition;
 
 class BundleProductDefinition extends EntityDefinition
 {
-    public const ENTITY_NAME = 'digipercep_bundle_product';
+    public const string ENTITY_NAME = 'digipercep_bundle_product';
 
     public function getEntityName(): string
     {
@@ -36,10 +36,18 @@ class BundleProductDefinition extends EntityDefinition
     protected function defineFields(): FieldCollection
     {
         return new FieldCollection([
-            (new IdField('id', 'id'))->addFlags(new PrimaryKey(), new Required()),
-            (new FkField('bundle_id', 'bundleId', BundleDefinition::class))->addFlags(new Required()),
-            (new FkField('product_id', 'productId', ProductDefinition::class))->addFlags(new Required()),
-            (new IntField('quantity', 'quantity'))->addFlags(new Required()),
+            (new IdField('id', 'id'))
+                ->addFlags(new PrimaryKey(), new Required()),
+
+            (new FkField('bundle_id', 'bundleId', BundleDefinition::class))
+                ->addFlags(new Required()),
+
+            (new FkField('product_id', 'productId', ProductDefinition::class))
+                ->addFlags(new Required()),
+
+            (new IntField('quantity', 'quantity'))
+                ->addFlags(new Required()),
+
             new IntField('position', 'position'),
             new BoolField('is_optional', 'isOptional'),
 

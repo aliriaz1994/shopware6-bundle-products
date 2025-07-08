@@ -16,10 +16,10 @@ use Shopware\Core\System\SalesChannel\Entity\SalesChannelRepository;
 class ProductPageLoadedSubscriber implements EventSubscriberInterface
 {
     public function __construct(
-        private BundleService $bundleService,
-        private CustomFieldBundleService $customFieldBundleService,
-        private EntityRepository $bundleRepository,
-        private SalesChannelRepository $salesChannelProductRepository
+        private readonly BundleService $bundleService,
+        private readonly CustomFieldBundleService $customFieldBundleService,
+        private readonly EntityRepository $bundleRepository,
+        private readonly SalesChannelRepository $salesChannelProductRepository
     ) {
     }
 

@@ -4,23 +4,16 @@ namespace DigiPercep\BundleProducts\Administration\Controller;
 
 use DigiPercep\BundleProducts\Service\BundleSyncService;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * @RouteScope(scopes={"api"})
- */
 class ProductBundleController extends AbstractController
 {
-    private BundleSyncService $bundleSyncService;
-
     public function __construct(
-        BundleSyncService $bundleSyncService
+        private readonly BundleSyncService $bundleSyncService
     ) {
-        $this->bundleSyncService = $bundleSyncService;
     }
 
     /**
@@ -31,7 +24,6 @@ class ProductBundleController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $productId = $data['productId'] ?? null;
         $bundles = $data['bundles'] ?? [];
-
         if (!$productId) {
             return new JsonResponse(['error' => 'Product ID is required'], 400);
         }
@@ -56,7 +48,6 @@ class ProductBundleController extends AbstractController
     public function getProductBundles(Request $request, Context $context): JsonResponse
     {
         $productId = $request->query->get('productId');
-
         if (!$productId) {
             return new JsonResponse(['error' => 'Product ID is required'], 400);
         }

@@ -6,10 +6,10 @@ use Shopware\Core\System\SystemConfig\SystemConfigService;
 
 class ConfigService
 {
-    private const CONFIG_DOMAIN = 'DigiPercepBundleProducts.config.';
+    private const string CONFIG_DOMAIN = 'DigiPercepBundleProducts.config.';
 
     public function __construct(
-        private SystemConfigService $systemConfigService
+        private readonly SystemConfigService $systemConfigService
     ) {
     }
 

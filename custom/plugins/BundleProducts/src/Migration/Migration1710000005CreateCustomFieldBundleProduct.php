@@ -10,11 +10,11 @@ use Shopware\Core\Framework\Uuid\Uuid;
 
 class Migration1710000005CreateCustomFieldBundleProduct extends MigrationStep
 {
-    private const CUSTOM_FIELD_SET_NAME = 'bundles';
+    private const string CUSTOM_FIELD_SET_NAME = 'bundles';
 
-    private const ENTITY_NAME = 'product';
+    private const string ENTITY_NAME = 'product';
 
-    private const CUSTOM_FIELDS = [
+    private const array CUSTOM_FIELDS = [
         'bundle_1' => [
             'type' => 'select',
             'config' => [
@@ -86,7 +86,7 @@ class Migration1710000005CreateCustomFieldBundleProduct extends MigrationStep
         ]
     ];
 
-    private const CUSTOM_FIELD_SET_CONFIG = [
+    private const array CUSTOM_FIELD_SET_CONFIG = [
         'label' => [
             'en-GB' => 'Bundles',
             'de-DE' => 'Bundles'
@@ -97,12 +97,9 @@ class Migration1710000005CreateCustomFieldBundleProduct extends MigrationStep
         'inline' => false
     ];
 
-    private ?LoggerInterface $logger;
-
     public function __construct(
-        ?LoggerInterface $logger = null
+        private readonly ?LoggerInterface $logger = null
     ) {
-        $this->logger = $logger;
     }
 
     #[\Override]
@@ -118,8 +115,14 @@ class Migration1710000005CreateCustomFieldBundleProduct extends MigrationStep
     public function update(Connection $connection): void
     {
         try {
-            $customFieldSetId = $this->createCustomFieldSet($connection);
-            $this->createCustomFieldSetRelation($connection, $customFieldSetId);
+            // Check if custom field set already exists
+            $customFieldSetId = $this->findCustomFieldSetId($connection);
+
+            if ($customFieldSetId === null) {
+                $customFieldSetId = $this->createCustomFieldSet($connection);
+                $this->createCustomFieldSetRelation($connection, $customFieldSetId);
+            }
+
             $this->createCustomFields($connection, $customFieldSetId);
         } catch (Exception $e) {
             $this->logError('Error during migration update', $e);
@@ -144,15 +147,17 @@ class Migration1710000005CreateCustomFieldBundleProduct extends MigrationStep
     }
 
     /**
-     * Creates a custom field set
+     * Creates a custom field set if it doesn't exist
      * @throws Exception
      */
     private function createCustomFieldSet(Connection $connection): string
     {
         $customFieldSetId = Uuid::randomBytes();
+
         $connection->executeStatement(
             'INSERT INTO `custom_field_set` (`id`, `name`, `config`, `active`, `created_at`)
-            VALUES (:id, :name, :config, 1, NOW())',
+            VALUES (:id, :name, :config, 1, NOW())
+            ON DUPLICATE KEY UPDATE `config` = VALUES(`config`), `updated_at` = NOW()',
             [
                 'id' => $customFieldSetId,
                 'name' => self::CUSTOM_FIELD_SET_NAME,
@@ -164,41 +169,65 @@ class Migration1710000005CreateCustomFieldBundleProduct extends MigrationStep
     }
 
     /**
-     * Creates relation between custom field set and entity
+     * Creates relation between custom field set and entity if it doesn't exist
      * @throws Exception
      */
     private function createCustomFieldSetRelation(Connection $connection, string $customFieldSetId): void
     {
-        $connection->executeStatement(
-            'INSERT INTO `custom_field_set_relation` (`id`, `set_id`, `entity_name`, `created_at`)
-            VALUES (:id, :setId, :entityName, NOW())',
-            [
-                'id' => Uuid::randomBytes(),
-                'setId' => $customFieldSetId,
-                'entityName' => self::ENTITY_NAME
-            ]
+        // Check if relation already exists
+        $existingRelation = $connection->fetchOne(
+            'SELECT id FROM custom_field_set_relation WHERE set_id = ? AND entity_name = ?',
+            [$customFieldSetId, self::ENTITY_NAME]
         );
+
+        if ($existingRelation === false) {
+            $connection->executeStatement(
+                'INSERT INTO `custom_field_set_relation` (`id`, `set_id`, `entity_name`, `created_at`)
+                VALUES (:id, :setId, :entityName, NOW())',
+                [
+                    'id' => Uuid::randomBytes(),
+                    'setId' => $customFieldSetId,
+                    'entityName' => self::ENTITY_NAME
+                ]
+            );
+        }
     }
 
     /**
-     * Creates all custom fields
+     * Creates all custom fields, skipping existing ones
      * @throws Exception
      */
     private function createCustomFields(Connection $connection, string $customFieldSetId): void
     {
-        $statement = $connection->prepare(
-            'INSERT INTO `custom_field` (`id`, `name`, `type`, `config`, `active`, `set_id`, `created_at`)
-            VALUES (:id, :name, :type, :config, 1, :setId, NOW())'
-        );
-
         foreach (self::CUSTOM_FIELDS as $name => $field) {
-            $statement->executeStatement([
-                'id' => Uuid::randomBytes(),
-                'name' => $name,
-                'type' => $field['type'],
-                'config' => json_encode($field['config']),
-                'setId' => $customFieldSetId
-            ]);
+            // Check if custom field already exists
+            $existingField = $connection->fetchOne(
+                'SELECT id FROM custom_field WHERE name = ?',
+                [$name]
+            );
+
+            if ($existingField === false) {
+                $connection->executeStatement(
+                    'INSERT INTO `custom_field` (`id`, `name`, `type`, `config`, `active`, `set_id`, `created_at`)
+                    VALUES (:id, :name, :type, :config, 1, :setId, NOW())',
+                    [
+                        'id' => Uuid::randomBytes(),
+                        'name' => $name,
+                        'type' => $field['type'],
+                        'config' => json_encode($field['config']),
+                        'setId' => $customFieldSetId
+                    ]
+                );
+            } else {
+                // Update existing field configuration
+                $connection->executeStatement(
+                    'UPDATE `custom_field` SET `config` = :config, `updated_at` = NOW() WHERE `name` = :name',
+                    [
+                        'config' => json_encode($field['config']),
+                        'name' => $name
+                    ]
+                );
+            }
         }
     }
 
@@ -232,14 +261,10 @@ class Migration1710000005CreateCustomFieldBundleProduct extends MigrationStep
         $fieldNames = array_keys(self::CUSTOM_FIELDS);
         $placeholders = implode(', ', array_fill(0, count($fieldNames), '?'));
 
-        // Find the custom field set first to ensure we only remove fields from our set
-        $customFieldSetId = $this->findCustomFieldSetId($connection);
-        if ($customFieldSetId !== null) {
-            $connection->executeStatement(
-                "DELETE FROM custom_field WHERE name IN ($placeholders) AND set_id = ?",
-                [...$fieldNames, $customFieldSetId]
-            );
-        }
+        $connection->executeStatement(
+            "DELETE FROM custom_field WHERE name IN ($placeholders)",
+            $fieldNames
+        );
     }
 
     /**

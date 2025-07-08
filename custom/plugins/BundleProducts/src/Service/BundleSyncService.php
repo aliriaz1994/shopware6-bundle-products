@@ -11,12 +11,10 @@ use Shopware\Core\Framework\Uuid\Uuid;
 
 class BundleSyncService
 {
-    private EntityRepository $productBundleRepository;
 
     public function __construct(
-        EntityRepository $productBundleRepository
+        private readonly EntityRepository $productBundleRepository
     ) {
-        $this->productBundleRepository = $productBundleRepository;
     }
 
     public function syncProductBundles(string $productId, array $bundles, Context $context): void
@@ -43,7 +41,6 @@ class BundleSyncService
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('productId', $productId));
         $criteria->addAssociation('bundle');
-
         $productBundles = $this->productBundleRepository->search($criteria, $context);
 
         $result = [];
@@ -70,7 +67,6 @@ class BundleSyncService
     {
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('productId', $productId));
-
         $existingBundles = $this->productBundleRepository->search($criteria, $context);
 
         if ($existingBundles->count() > 0) {
@@ -112,7 +108,6 @@ class BundleSyncService
     public function validateBundleData(array $bundles): array
     {
         $errors = [];
-
         foreach ($bundles as $index => $bundle) {
             if (empty($bundle['bundleId'])) {
                 $errors[] = "Bundle at index {$index} is missing bundleId";

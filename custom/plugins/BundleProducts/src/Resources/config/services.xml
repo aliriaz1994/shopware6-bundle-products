@@ -26,11 +26,6 @@
         <!-- Services -->
         <service id="DigiPercep\BundleProducts\Service\BundleService">
             <argument type="service" id="digipercep_bundle.repository"/>
-            <argument type="service" id="digipercep_bundle_product.repository"/>
-            <argument type="service" id="digipercep_product_bundle.repository"/>
-            <argument type="service" id="product.repository"/>
-            <argument type="service" id="Shopware\Core\Checkout\Cart\Price\QuantityPriceCalculator"/>
-            <argument type="service" id="Shopware\Core\System\Currency\CurrencyFormatter"/>
         </service>
 
         <service id="DigiPercep\BundleProducts\Service\BundleSyncService">

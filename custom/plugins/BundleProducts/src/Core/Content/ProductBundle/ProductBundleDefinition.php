@@ -17,7 +17,7 @@ use DigiPercep\BundleProducts\Core\Content\Bundle\BundleDefinition;
 
 class ProductBundleDefinition extends EntityDefinition
 {
-    public const ENTITY_NAME = 'digipercep_product_bundle';
+    public const string ENTITY_NAME = 'digipercep_product_bundle';
 
     public function getEntityName(): string
     {

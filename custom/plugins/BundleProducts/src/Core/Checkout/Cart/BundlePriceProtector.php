@@ -8,6 +8,9 @@ use Shopware\Core\Checkout\Cart\CartProcessorInterface;
 use Shopware\Core\Checkout\Cart\LineItem\CartDataCollection;
 use Shopware\Core\Checkout\Cart\LineItem\LineItem;
 use Shopware\Core\Checkout\Cart\Price\Struct\AbsolutePriceDefinition;
+use Shopware\Core\Checkout\Cart\Price\Struct\CalculatedPrice;
+use Shopware\Core\Checkout\Cart\Tax\Struct\CalculatedTaxCollection;
+use Shopware\Core\Checkout\Cart\Tax\Struct\TaxRuleCollection;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Psr\Log\LoggerInterface;
 
@@ -17,7 +20,7 @@ use Psr\Log\LoggerInterface;
 class BundlePriceProtector implements CartProcessorInterface
 {
     public function __construct(
-        private LoggerInterface $logger
+        private readonly LoggerInterface $logger
     ) {
     }
 
@@ -52,11 +55,11 @@ class BundlePriceProtector implements CartProcessorInterface
                 ]);
 
                 // Force restore the exact bundle price
-                $bundlePrice = new \Shopware\Core\Checkout\Cart\Price\Struct\CalculatedPrice(
+                $bundlePrice = new CalculatedPrice(
                     $bundlePriceOverride,
                     $bundlePriceOverride,
-                    new \Shopware\Core\Checkout\Cart\Tax\Struct\CalculatedTaxCollection(),
-                    new \Shopware\Core\Checkout\Cart\Tax\Struct\TaxRuleCollection(),
+                    new CalculatedTaxCollection(),
+                    new TaxRuleCollection(),
                     1
                 );
 

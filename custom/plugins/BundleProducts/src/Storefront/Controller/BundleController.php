@@ -28,9 +28,9 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route(defaults: ['_routeScope' => ['storefront']])]
 class BundleController extends StorefrontController
 {
-    private const BUNDLE_LINE_ITEM_PREFIX = 'bundle-';
-    private const SUCCESS_STATUS_CODE = 200;
-    private const INTERNAL_ERROR_STATUS_CODE = 500;
+    private const string BUNDLE_LINE_ITEM_PREFIX = 'bundle-';
+    private const int SUCCESS_STATUS_CODE = 200;
+    private const int INTERNAL_ERROR_STATUS_CODE = 500;
 
     public function __construct(
         private readonly BundleService $bundleService,

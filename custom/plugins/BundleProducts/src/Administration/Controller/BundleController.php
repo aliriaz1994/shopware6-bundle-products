@@ -72,7 +72,6 @@ class BundleController extends AbstractController
     {
         try {
             $data = $this->decodeRequestData($request);
-
             if ($error = $this->validateBundleData($data)) {
                 return $error;
             }
@@ -96,7 +95,6 @@ class BundleController extends AbstractController
     {
         try {
             $data = $this->decodeRequestData($request);
-
             $bundle = $this->bundleRepository->search(new Criteria([$id]), $context)->first();
             if (!$bundle) {
                 return $this->createErrorResponse('BUNDLE_NOT_FOUND', 'Bundle not found', "Bundle with id {$id} not found", 404);

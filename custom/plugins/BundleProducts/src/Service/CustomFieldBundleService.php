@@ -14,20 +14,20 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
 class CustomFieldBundleService
 {
     // Technical name for the JSON field (for backwards compatibility)
-    private const TECHNICAL_FIELD_NAME = 'digipercep_bundle_product';
+    private const string TECHNICAL_FIELD_NAME = 'digipercep_bundle_product';
 
     // Individual bundle slot field names
-    private const BUNDLE_FIELD_NAMES = [
+    private const array BUNDLE_FIELD_NAMES = [
         'bundle_1' => 'bundle_1',
         'bundle_2' => 'bundle_2',
         'bundle_3' => 'bundle_3'
     ];
 
     public function __construct(
-        private EntityRepository $productRepository,
-        private EntityRepository $bundleRepository,
-        private SalesChannelRepository $salesChannelProductRepository,
-        private BundleSyncService $bundleSyncService
+        private readonly EntityRepository $productRepository,
+        private readonly EntityRepository $bundleRepository,
+        private readonly SalesChannelRepository $salesChannelProductRepository,
+        private readonly BundleSyncService $bundleSyncService
     ) {
     }
 

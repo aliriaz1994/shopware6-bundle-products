@@ -18,7 +18,7 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route(defaults: ['_routeScope' => ['api']])]
 class BundleProductController extends AbstractController
 {
-    private const ALLOWED_BUNDLE_SLOTS = ['bundle_1', 'bundle_2', 'bundle_3'];
+    private const array ALLOWED_BUNDLE_SLOTS = ['bundle_1', 'bundle_2', 'bundle_3'];
 
     public function __construct(
         private readonly EntityRepository $productBundleRepository,
