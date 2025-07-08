@@ -60,11 +60,6 @@
             </call>
         </service>
 
-        <service id="DigiPercep\BundleProducts\Administration\Controller\ProductBundleController" public="true">
-            <argument type="service" id="DigiPercep\BundleProducts\Service\BundleSyncService"/>
-            <tag name="controller.service_arguments"/>
-        </service>
-
         <!-- Storefront Controllers -->
         <service id="DigiPercep\BundleProducts\Storefront\Controller\BundleController" public="true">
             <argument type="service" id="DigiPercep\BundleProducts\Service\BundleService"/>
