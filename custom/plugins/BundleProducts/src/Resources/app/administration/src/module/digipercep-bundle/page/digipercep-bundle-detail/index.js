@@ -16,7 +16,6 @@ Component.register('digipercep-bundle-detail', {
                 name: '',
                 discount: 0,
                 discountType: 'percentage',
-                isSelectable: false,
                 active: true,
                 priority: 0
             },
@@ -134,7 +133,6 @@ Component.register('digipercep-bundle-detail', {
                     name: bundle.name || '',
                     discount: bundle.discount || 0,
                     discountType: bundle.discountType || 'percentage',
-                    isSelectable: Boolean(bundle.isSelectable),
                     active: Boolean(bundle.active),
                     priority: bundle.priority || 0
                 };
@@ -342,7 +340,6 @@ Component.register('digipercep-bundle-detail', {
                     name: this.bundle.name.trim(),
                     discount: parseFloat(this.bundle.discount) || 0,
                     discountType: this.bundle.discountType || 'percentage',
-                    isSelectable: Boolean(this.bundle.isSelectable),
                     active: Boolean(this.bundle.active),
                     priority: parseInt(this.bundle.priority) || 0
                 };

@@ -46,7 +46,6 @@ class Migration1700000000CreateBundleTables extends MigrationStep
                 `name` VARCHAR(255) NOT NULL,
                 `discount` DOUBLE NOT NULL,
                 `discount_type` VARCHAR(20) NOT NULL DEFAULT 'percentage',
-                `is_selectable` TINYINT(1) NOT NULL DEFAULT 0,
                 `active` TINYINT(1) NOT NULL DEFAULT 1,
                 `display_mode` VARCHAR(50) NULL,
                 `priority` INT(11) NULL DEFAULT 0,

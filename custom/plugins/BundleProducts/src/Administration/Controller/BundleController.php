@@ -555,7 +555,6 @@ class BundleController extends AbstractController
             'name' => trim($data['name']),
             'discount' => max(0, (float) ($data['discount'] ?? 0)),
             'discountType' => in_array($data['discountType'] ?? '', ['percentage', 'absolute']) ? $data['discountType'] : 'percentage',
-            'isSelectable' => (bool) ($data['isSelectable'] ?? false),
             'active' => (bool) ($data['active'] ?? true),
             'priority' => max(0, (int) ($data['priority'] ?? 0)),
         ];
@@ -590,7 +589,6 @@ class BundleController extends AbstractController
             'name' => $bundle->getName(),
             'discount' => $bundle->getDiscount(),
             'discountType' => $bundle->getDiscountType(),
-            'isSelectable' => $bundle->isSelectable(),
             'active' => $bundle->getActive(),
             'priority' => $bundle->getPriority(),
             'createdAt' => $bundle->getCreatedAt()?->format('c'),

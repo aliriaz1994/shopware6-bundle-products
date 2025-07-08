@@ -53,9 +53,6 @@ class BundleDefinition extends EntityDefinition
             (new StringField('discount_type', 'discountType', 20))
                 ->addFlags(new ApiAware(), new Required()),
 
-            (new BoolField('is_selectable', 'isSelectable'))
-                ->addFlags(new ApiAware()),
-
             (new BoolField('active', 'active'))
                 ->addFlags(new ApiAware()),
 

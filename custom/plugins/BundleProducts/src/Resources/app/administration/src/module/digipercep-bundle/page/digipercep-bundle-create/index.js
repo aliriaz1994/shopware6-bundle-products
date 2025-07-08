@@ -16,7 +16,6 @@ Component.register('digipercep-bundle-create', {
                 active: true,
                 discount: 0,
                 discountType: 'percentage',
-                isSelectable: false,
                 priority: 0
             },
             isLoading: false,
@@ -89,7 +88,6 @@ Component.register('digipercep-bundle-create', {
                 name: this.formData.name.trim(),
                 discount: parseFloat(this.formData.discount),
                 discountType: this.formData.discountType,
-                isSelectable: this.formData.isSelectable,
                 active: this.formData.active,
                 priority: parseInt(this.formData.priority) || 0
             };

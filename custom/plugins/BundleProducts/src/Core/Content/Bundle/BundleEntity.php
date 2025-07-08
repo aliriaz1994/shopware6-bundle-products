@@ -15,7 +15,6 @@ class BundleEntity extends Entity
     protected ?string $description = null;
     protected float $discount = 0.0;
     protected string $discountType = 'percentage';
-    protected bool $isSelectable = false;
     protected bool $active = true;
     protected int $priority = 0;
     protected ?BundleProductCollection $bundleProducts = null;
@@ -49,16 +48,6 @@ class BundleEntity extends Entity
     public function setDiscountType(string $discountType): void
     {
         $this->discountType = $discountType;
-    }
-
-    public function isSelectable(): bool
-    {
-        return $this->isSelectable;
-    }
-
-    public function setIsSelectable(bool $isSelectable): void
-    {
-        $this->isSelectable = $isSelectable;
     }
 
     public function getActive(): bool
