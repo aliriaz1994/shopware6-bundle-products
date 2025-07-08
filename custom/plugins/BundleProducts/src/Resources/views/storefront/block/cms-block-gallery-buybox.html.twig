@@ -1,0 +1,105 @@
+{# File: custom/plugins/BundleProducts/src/Resources/views/storefront/block/cms-block-gallery-buybox.html.twig #}
+
+{% sw_extends '@Storefront/storefront/block/cms-block-gallery-buybox.html.twig' %}
+
+{% block block_gallery_buybox_column_left %}
+    {% set element = block.slots.getSlot('left') %}
+    {% set config = element.fieldConfig.elements %}
+
+    <div class="col-lg-7 product-detail-media" data-cms-element-id="{{ element.id }}">
+        {# ADD BUNDLE BADGE OVERLAY ON PRODUCT IMAGES #}
+        {% if page.extensions.bundleAssignments is defined %}
+            {% set bundleAssignments = page.extensions.bundleAssignments.getVars() %}
+            {% set hasActiveBundle = false %}
+            {% set bundleCount = 0 %}
+
+            {% for slotName, assignment in bundleAssignments %}
+                {% if assignment and assignment.bundle and assignment.bundle.active %}
+                    {% set hasActiveBundle = true %}
+                    {% set bundleCount = bundleCount + 1 %}
+                {% endif %}
+            {% endfor %}
+
+            {% if hasActiveBundle %}
+                <div class="product-image-bundle-badge">
+                    <span class="badge badge-bundle badge-image-overlay">
+                        <svg class="bundle-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2L2 7V17L12 22L22 17V7L12 2ZM12 4.41L19.09 8L12 11.59L4.91 8L12 4.41ZM4 9.5L11 13.09V20.5L4 16.91V9.5ZM13 20.5V13.09L20 9.5V16.91L13 20.5Z"/>
+                        </svg>
+                        Bundle
+                        {% if bundleCount > 1 %}
+                            <span class="bundle-count-small">({{ bundleCount }})</span>
+                        {% endif %}
+                    </span>
+                </div>
+            {% endif %}
+        {% endif %}
+
+        {% block block_gallery_buybox_column_left_inner %}
+            {% sw_include '@Storefront/storefront/element/cms-element-' ~ element.type ~ '.html.twig' ignore missing
+                with {
+                isProduct: config.sliderItems.value == 'product.media' and config.sliderItems.source == 'mapped',
+                startIndexThumbnails: 1,
+                startIndexSlider: 1
+            } %}
+        {% endblock %}
+    </div>
+{% endblock %}
+
+{% block block_gallery_buybox_column_right %}
+    {% set element = block.slots.getSlot('right') %}
+
+    <div class="col-lg-5 product-detail-buy" data-cms-element-id="{{ element.id }}">
+        {# ADD BUNDLE ALERT IN BUYBOX AREA #}
+        {% if page.extensions.bundleAssignments is defined %}
+            {% set bundleAssignments = page.extensions.bundleAssignments.getVars() %}
+            {% set hasActiveBundle = false %}
+            {% set bundleCount = 0 %}
+            {% set maxSavings = 0 %}
+
+            {% for slotName, assignment in bundleAssignments %}
+                {% if assignment and assignment.bundle and assignment.bundle.active %}
+                    {% set hasActiveBundle = true %}
+                    {% set bundleCount = bundleCount + 1 %}
+
+                    {# Calculate potential savings #}
+                    {% if assignment.bundle.discountType == 'percentage' %}
+                        {% set savings = page.product.calculatedPrice.totalPrice * assignment.bundle.discount / 100 %}
+                    {% else %}
+                        {% set savings = assignment.bundle.discount %}
+                    {% endif %}
+                    {% set maxSavings = maxSavings > savings ? maxSavings : savings %}
+                {% endif %}
+            {% endfor %}
+
+            {% if hasActiveBundle %}
+                <div class="buybox-bundle-alert">
+                    <div class="bundle-promotion-banner">
+                        <div class="bundle-promo-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2L2 7V17L12 22L22 17V7L12 2ZM12 4.41L19.09 8L12 11.59L4.91 8L12 4.41ZM4 9.5L11 13.09V20.5L4 16.91V9.5ZM13 20.5V13.09L20 9.5V16.91L13 20.5Z"/>
+                            </svg>
+                        </div>
+                        <div class="bundle-promo-content">
+                            <div class="bundle-promo-title">Bundle Deal Available!</div>
+                            <div class="bundle-promo-text">
+                                {% if maxSavings > 0 %}
+                                    Save up to €{{ maxSavings|number_format(2, '.', ',') }} when you buy this as a bundle
+                                {% else %}
+                                    Get this product as part of a money-saving bundle
+                                {% endif %}
+                                {% if bundleCount > 1 %}
+                                    <br><small>{{ bundleCount }} bundle options available</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
+
+        {% block block_gallery_buybox_column_right_inner %}
+            {% sw_include '@Storefront/storefront/element/cms-element-' ~ element.type ~ '.html.twig' ignore missing %}
+        {% endblock %}
+    </div>
+{% endblock %}
