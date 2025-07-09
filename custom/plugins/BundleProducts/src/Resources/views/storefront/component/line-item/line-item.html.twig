@@ -71,13 +71,13 @@
                             {% if lineItem.payload.originalPrice and lineItem.payload.savings %}
                                 <div class="pricing-container">
                                     <div class="original-price text-muted">
-                                        <small><s>Was: {{ lineItem.payload.originalPrice|currency }}</s></small>
+                                        <small><s>Was: {{ (lineItem.payload.originalPrice * lineItem.quantity)|currency }}</s></small>
                                     </div>
                                     <div class="current-price fw-bold">
                                         Now: {{ lineItem.price.totalPrice|currency }}
                                     </div>
                                     <div class="savings-amount text-success">
-                                        <small>Save {{ lineItem.payload.savings|currency }}</small>
+                                        <small>Save {{ (lineItem.payload.savings * lineItem.quantity)|currency }}</small>
                                     </div>
                                 </div>
                             {% endif %}
@@ -113,12 +113,81 @@
                 </div>
             </div>
 
-            {# Quantity Column #}
+            {# Quantity Column - Updated with increment/decrement controls #}
             <div class="line-item-quantity">
                 <div class="row line-item-quantity-row">
                     <div class="line-item-quantity-select-wrapper">
-                        <div class="d-flex justify-content-sm-center justify-content-end">
-                            {{ lineItem.quantity }}
+                        <div class="line-item-quantity-group quantity-selector-group d-flex">
+                            {# Decrease button form #}
+                            <form action="{{ path('frontend.bundle.update-quantity') }}" method="post" class="d-inline">
+                                <input type="hidden" name="redirectTo" value="frontend.checkout.cart.page">
+                                <input type="hidden" name="redirectParameters" value="">
+                                <input type="hidden" name="line-item-id" value="{{ lineItem.id }}">
+                                <input type="hidden" name="quantity" value="{{ lineItem.quantity - 1 }}">
+
+                                <button type="submit"
+                                        class="btn btn-outline-light btn-minus"
+                                        aria-label="Decrease quantity of Bundle - {{ lineItem.label }}"
+                                        data-focus-id="line-item-cart-quantity-down-{{ lineItem.id }}"
+                                        {% if lineItem.quantity <= 1 %}disabled{% endif %}>
+                        <span class="icon icon-minus icon-xs" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24" height="24" viewBox="0 0 24 24">
+                                <defs>
+                                    <path id="icons-default-minus" d="M3 13h18c.5523 0 1-.4477 1-1s-.4477-1-1-1H3c-.5523 0-1 .4477-1 1s.4477 1 1 1z"></path>
+                                </defs>
+                                <use xlink:href="#icons-default-minus" fill="#758CA3" fill-rule="evenodd"></use>
+                            </svg>
+                        </span>
+                                </button>
+                            </form>
+
+                            {# Quantity input form #}
+                            <form action="{{ path('frontend.bundle.update-quantity') }}" method="post" class="flex-fill">
+                                <input type="hidden" name="redirectTo" value="frontend.checkout.cart.page">
+                                <input type="hidden" name="redirectParameters" value="">
+                                <input type="hidden" name="line-item-id" value="{{ lineItem.id }}">
+
+                                <input type="number"
+                                       name="quantity"
+                                       class="form-control text-center quantity-selector-group-input quantity-input-{{ lineItem.id }}"
+                                       min="1"
+                                       max="999"
+                                       step="1"
+                                       value="{{ lineItem.quantity }}"
+                                       aria-label="Quantity of Bundle - {{ lineItem.label }}"
+                                       data-focus-id="line-item-cart-quantity-{{ lineItem.id }}"
+                                       onchange="this.form.submit()">
+                            </form>
+
+                            {# Increase button form #}
+                            <form action="{{ path('frontend.bundle.update-quantity') }}" method="post" class="d-inline">
+                                <input type="hidden" name="redirectTo" value="frontend.checkout.cart.page">
+                                <input type="hidden" name="redirectParameters" value="">
+                                <input type="hidden" name="line-item-id" value="{{ lineItem.id }}">
+                                <input type="hidden" name="quantity" value="{{ lineItem.quantity + 1 }}">
+
+                                <button type="submit"
+                                        class="btn btn-outline-light btn-plus"
+                                        aria-label="Increase quantity of Bundle - {{ lineItem.label }}"
+                                        data-focus-id="line-item-cart-quantity-up-{{ lineItem.id }}"
+                                        {% if lineItem.quantity >= 999 %}disabled{% endif %}>
+                        <span class="icon icon-plus icon-xs" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24" height="24" viewBox="0 0 24 24">
+                                <defs>
+                                    <path d="M11 11V3c0-.5523.4477-1 1-1s1 .4477 1 1v8h8c.5523 0 1 .4477 1 1s-.4477 1-1 1h-8v8c0 .5523-.4477 1-1 1s-1-.4477-1-1v-8H3c-.5523 0-1-.4477-1-1s.4477-1 1-1h8z" id="icons-default-plus"></path>
+                                </defs>
+                                <use xlink:href="#icons-default-plus" fill="#758CA3" fill-rule="evenodd"></use>
+                            </svg>
+                        </span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="quantity-area-live visually-hidden"
+                             aria-live="polite"
+                             aria-atomic="true"
+                             data-aria-live-text="Quantity of %product% set to %quantity%."
+                             data-aria-live-product-name="Bundle - {{ lineItem.label }}">
                         </div>
                     </div>
                 </div>
@@ -286,7 +355,7 @@
                                     <div class="line-item-quantity">
                                         <div class="row line-item-quantity-row">
                                             <div class="line-item-quantity-select-wrapper">
-                                                <div class="d-flex justify-content-sm-center justify-content-end">1</div>
+                                                <div class="d-flex justify-content-sm-center justify-content-end">{{ lineItem.quantity }}</div>
                                             </div>
                                         </div>
                                     </div>
@@ -294,7 +363,11 @@
                                     <div class="line-item-unit-price">
                                         <div class="line-item-unit-price-label">Unit price:</div>
                                         <div class="line-item-unit-price-value">
-                                            {{ lineItem.payload.currentProduct.totalPrice|currency }}
+                                            {% if lineItem.payload.currentProduct.unitPrice is defined %}
+                                                {{ lineItem.payload.currentProduct.unitPrice|currency }}
+                                            {% else %}
+                                                {{ lineItem.payload.currentProduct.totalPrice|currency }}
+                                            {% endif %}
                                             <span class="line-item-unit-price-value-descriptor" aria-hidden="true"> / unit</span>
                                         </div>
                                     </div>
@@ -302,7 +375,7 @@
                                     <div class="line-item-total-price">
                                         <div class="line-item-total-price-label">Subtotal:</div>
                                         <div class="line-item-total-price-value">
-                                            {{ lineItem.payload.currentProduct.totalPrice|currency }}
+                                            {{ (lineItem.payload.currentProduct.totalPrice * lineItem.quantity)|currency }}
                                         </div>
                                     </div>
 
@@ -336,7 +409,8 @@
                                     <div class="line-item-quantity">
                                         <div class="row line-item-quantity-row">
                                             <div class="line-item-quantity-select-wrapper">
-                                                <div class="d-flex justify-content-sm-center justify-content-end">{{ product.quantity|default(1) }}</div>
+                                                {% set productQuantity = (product.quantity|default(1) * lineItem.quantity) %}
+                                                <div class="d-flex justify-content-sm-center justify-content-end">{{ productQuantity }}</div>
                                             </div>
                                         </div>
                                     </div>
@@ -356,7 +430,7 @@
                                     <div class="line-item-total-price">
                                         <div class="line-item-total-price-label">Subtotal:</div>
                                         <div class="line-item-total-price-value">
-                                            {{ product.totalPrice|currency }}
+                                            {{ (product.totalPrice * lineItem.quantity)|currency }}
                                         </div>
                                     </div>
 
@@ -381,24 +455,12 @@
                                         </div>
                                     </div>
 
-                                    <div class="line-item-quantity"></div>
-
-                                    <div class="line-item-unit-price">
-                                        <div class="line-item-unit-price-label">Unit price:</div>
-                                        <div class="line-item-unit-price-value">
-                                            -{{ lineItem.payload.savings|currency }}
-                                            <span class="line-item-unit-price-value-descriptor" aria-hidden="true"> / unit</span>
-                                        </div>
-                                    </div>
-
                                     <div class="line-item-total-price">
                                         <div class="line-item-total-price-label">Subtotal:</div>
                                         <div class="line-item-total-price-value">
-                                            − {{ lineItem.payload.savings|currency }}
+                                            − {{ (lineItem.payload.savings * lineItem.quantity)|currency }}
                                         </div>
                                     </div>
-
-                                    <div class="line-item-remove"></div>
                                 </div>
                             </li>
                         {% endif %}
