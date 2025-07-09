@@ -60,13 +60,13 @@
                                 {% if lineItem.payload.originalPrice and lineItem.payload.savings %}
                                     <div class="bundle-pricing">
                                         <div class="original-price text-muted">
-                                            <small><s>Was: {{ lineItem.payload.originalPrice|currency }}</s></small>
+                                            <small><s>Was: {{ (lineItem.payload.originalPrice * lineItem.quantity)|currency }}</s></small>
                                         </div>
                                         <div class="current-price text-success fw-bold">
                                             Now: {{ lineItem.price.totalPrice|currency }}
                                         </div>
                                         <div class="savings-amount text-success">
-                                            <small>Save {{ lineItem.payload.savings|currency }}</small>
+                                            <small>Save {{ (lineItem.payload.savings * lineItem.quantity)|currency }}</small>
                                         </div>
                                     </div>
                                 {% endif %}
@@ -125,7 +125,7 @@
                                                name="quantity"
                                                class="form-control js-quantity-selector quantity-selector-group-input quantity-input-{{ lineItem.id }} js-offcanvas-cart-change-quantity-number"
                                                min="1"
-                                               max="100"
+                                               max="999"
                                                step="1"
                                                value="{{ lineItem.quantity }}"
                                                aria-label="Quantity of Bundle - {{ lineItem.label }}"
@@ -228,11 +228,11 @@
                                         </div>
                                         <div class="current-product-price">
                                             {% if lineItem.payload.currentProduct.totalPrice is defined %}
-                                                {{ lineItem.payload.currentProduct.totalPrice|currency }}
+                                                {{ (lineItem.payload.currentProduct.totalPrice * lineItem.quantity)|currency }}
                                             {% elseif lineItem.payload.currentProduct.unitPrice is defined %}
-                                                {{ lineItem.payload.currentProduct.unitPrice|currency }}
+                                                {{ (lineItem.payload.currentProduct.unitPrice * lineItem.quantity)|currency }}
                                             {% else %}
-                                                {{ (lineItem.payload.originalPrice / lineItem.payload.allProducts|length)|currency }}
+                                                {{ (lineItem.payload.originalPrice / lineItem.payload.allProducts|length * lineItem.quantity)|currency }}
                                             {% endif %}
                                         </div>
                                     </div>
@@ -255,7 +255,7 @@
                                             <span class="bundle-product-name">{{ product.name }}</span>
                                         </div>
                                         <div class="bundle-product-price text-muted">
-                                            {{ product.totalPrice|currency }}
+                                            {{ (product.totalPrice * lineItem.quantity)|currency }}
                                         </div>
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center mt-1">
@@ -274,8 +274,8 @@
                             {% if lineItem.payload.originalPrice and lineItem.payload.savings %}
                                 <hr class="my-2">
                                 <div class="savings-summary d-flex justify-content-between align-items-center">
-                                    <span class="savings-label text-success fw-bold">Your savings:</span>
-                                    <span class="savings-value text-success fw-bold">{{ lineItem.payload.savings|currency }}</span>
+                                    <span class="savings-label text-success fw-bold">Your total savings:</span>
+                                    <span class="savings-value text-success fw-bold">{{ (lineItem.payload.savings * lineItem.quantity)|currency }}</span>
                                 </div>
                             {% endif %}
 
