@@ -1,21 +1,12 @@
 /* File: custom/plugins/BundleProducts/src/Resources/app/storefront/src/scss/bundle-checkout-cart.scss */
 
-// Minimal bundle styling that follows Shopware's design patterns
 .bundle-item.is-default {
-  // Ensure proper column alignment like regular line items
   .line-item-row {
-
-    // Product info section takes up remaining space
     .line-item-info {
-      min-width: 0; // Prevents flex overflow
+      min-width: 0;
     }
 
-    // Fixed width columns to match Shopware's layout
     .line-item-quantity {
-      //width: 120px;
-      //min-width: 120px;
-      //text-align: center;
-
       @media (max-width: 768px) {
         width: 100%;
         margin-bottom: 1rem;
@@ -36,10 +27,6 @@
     }
 
     .line-item-total-price {
-      //width: 140px;
-      //min-width: 140px;
-      //text-align: right;
-
       @media (max-width: 768px) {
         width: 100%;
         margin-bottom: 1rem;
@@ -48,10 +35,6 @@
     }
 
     .line-item-remove {
-      //width: 60px;
-      //min-width: 60px;
-      //text-align: center;
-
       @media (max-width: 768px) {
         width: 100%;
         text-align: right;
