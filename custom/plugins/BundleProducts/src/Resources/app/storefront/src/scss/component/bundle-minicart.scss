@@ -1,21 +1,16 @@
 /* Bundle Products - Offcanvas Cart Styles */
 
-/* Main bundle item container */
-.offcanvas-cart-item.bundle-item {
+/* Main bundle item container - Following Shopware structure */
+.line-item.bundle-item {
   margin-top: 15px;
   margin-bottom: 10px;
   background: #f8fafc;
 }
 
-.bundle-products-list .product-price {
-  overflow: visible !important;
-}
-
 /* Bundle badge */
 .bundle-item .bundle-badge {
-  background: #3b82f6;
   color: white;
-  padding: 2px 8px;
+  padding: 2px 1px;
   border-radius: 12px;
   font-size: 0.75rem;
   font-weight: bold;
@@ -23,36 +18,41 @@
   margin-bottom: 8px;
 }
 
-/* Bundle info container */
-.bundle-item .bundle-info {
+/* Image styling for bundles */
+.bundle-item .line-item-img.bundle-placeholder {
+  background: #e5e7eb;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-weight: 500;
+  min-height: 80px;
+  width: 80px;
+  border-radius: 4px;
+}
+
+/* Bundle title styling */
+.bundle-item .line-item-label.bundle-title {
+  font-weight: bold;
+  color: #1e293b;
   margin-bottom: 8px;
 }
 
-.bundle-item .bundle-info .bundle-details {
-  flex: 1;
+/* Bundle pricing display */
+.bundle-item .bundle-pricing {
+  margin-top: 8px;
 }
 
-/* Bundle title */
-.bundle-item .bundle-title {
-  margin: 0 0 4px 0;
-  font-weight: bold;
-  color: #1e293b;
-}
-
-/* Pricing styles */
 .bundle-item .original-price {
   font-size: 0.8rem;
   color: #6b7280;
-  text-decoration: line-through;
 }
 
 .bundle-item .current-price {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: bold;
   color: #059669;
+  margin: 2px 0;
 }
 
 .bundle-item .savings-amount {
@@ -61,68 +61,63 @@
   font-weight: bold;
 }
 
-/* Remove button */
-.bundle-item .remove-button {
-  background: none;
-  border: none;
-  color: #6b7280;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  transition: color 0.2s ease;
+/* Bundle unit price styling */
+.bundle-item .line-item-unit-price-value {
+  font-weight: 600;
+  color: #374151;
 }
 
-.bundle-details-container {
-  display: none;
-  margin-top: 10px;
-  padding: 10px;
-  border-top: 1px solid #eee;
+/* Bundle remove button */
+.bundle-item .line-item-remove-button {
+  /* Keep Shopware's default remove button styling */
 }
 
-.bundle-details-container.show {
-  display: block;
+/* Bundle contents section */
+.bundle-item .bundle-contents-section {
+  margin-top: 15px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
 }
 
-.contents-toggle {
-  background: none;
-  border: 1px solid #ccc;
-  padding: 5px 10px;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
-.contents-toggle:hover {
-  background-color: #f5f5f5;
-}
-
-.bundle-item .remove-button:hover {
-  color: #dc2626;
-}
-
-/* Toggle button for bundle contents */
-.bundle-item .contents-toggle {
-  background: #e5e7eb;
+.bundle-item .bundle-contents-toggle {
+  background: #f3f4f6;
   border: 1px solid #d1d5db;
-  border-radius: 4px;
-  padding: 6px 10px;
+  border-radius: 6px;
+  padding: 8px 12px;
   width: 100%;
   cursor: pointer;
-  font-size: 0.8rem;
-  transition: background-color 0.2s ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.bundle-item .contents-toggle:hover {
-  background: #d1d5db;
+.bundle-item .bundle-contents-toggle:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.bundle-item .bundle-contents-toggle .toggle-icon {
+  font-weight: bold;
+  font-size: 1rem;
+  transition: transform 0.2s ease;
+}
+
+.bundle-item .bundle-contents-toggle.expanded .toggle-icon {
+  transform: rotate(45deg);
 }
 
 /* Bundle details container */
 .bundle-item .bundle-details-container {
   display: none;
-  margin-top: 8px;
+  margin-top: 12px;
   background: white;
   border: 1px solid #e5e7eb;
-  border-radius: 4px;
-  padding: 8px;
+  border-radius: 6px;
+  padding: 12px;
 }
 
 .bundle-item .bundle-details-container.show {
@@ -131,7 +126,7 @@
 
 /* Bundle product items */
 .bundle-item .bundle-product-item {
-  padding: 4px 0;
+  padding: 8px 0;
   border-bottom: 1px solid #f3f4f6;
 }
 
@@ -139,76 +134,79 @@
   border-bottom: none;
 }
 
-.bundle-item .product-row {
+.bundle-item .product-info {
   display: flex;
   justify-content: space-between;
 }
 
-/* Current product indicator */
-.bundle-item .current-product-badge {
-  font-weight: bold;
-}
-
-/* Included product badge */
-.bundle-item .included-badge {
-  background: #10b981;
+/* Bundle badges */
+.bundle-item .badge-primary {
+  background-color: #3b82f6;
   color: white;
-  padding: 1px 4px;
-  border-radius: 2px;
-  font-size: 0.7rem;
 }
 
-/* Strikethrough price for included items */
-.bundle-item .included-price {
-  text-decoration: line-through;
-  color: #6b7280;
+.bundle-item .badge-success {
+  background-color: #10b981;
+  color: white;
+}
+
+.bundle-item .badge-secondary {
+  background-color: #6b7280;
+  color: white;
+}
+
+.bundle-item .badge-sm {
+  font-size: 0.7rem;
+  padding: 2px 6px;
 }
 
 /* Savings summary */
 .bundle-item .savings-summary {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid #e5e7eb;
+  margin-top: 12px;
+  padding: 10px;
   background: #f0fdf4;
-  padding: 6px;
-  border-radius: 4px;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
 }
 
-.bundle-item .savings-row {
-  display: flex;
-  justify-content: space-between;
-  font-weight: bold;
-}
-
+.bundle-item .savings-label,
 .bundle-item .savings-value {
-  color: #10b981;
-}
-
-button.btn.btn-outline-secondary.btn-sm.bundle-remove-btn.line-item-remove-button {
-  margin-left: 35px;
-}
-
-/* Quantity display */
-.bundle-item .quantity-info {
-  margin-top: 8px;
+  color: #059669;
   font-weight: bold;
-  color: #6b7280;
+}
+
+/* Bundle description */
+.bundle-item .bundle-description {
+  margin-top: 8px;
+  font-style: italic;
+}
+
+/* Override only when necessary for bundle-specific needs */
+.bundle-products-list .product-price {
+  overflow: visible !important;
 }
 
 /* Responsive adjustments */
 @media (max-width: 576px) {
-  .bundle-item .bundle-info {
-    flex-direction: column;
-    align-items: stretch;
+  .bundle-item {
+    padding: 8px;
   }
 
-  .bundle-item .remove-button {
-    align-self: flex-end;
-    margin-top: 8px;
+  .bundle-item .bundle-badge {
+    position: relative;
+    top: 0;
+    left: 0;
+    margin-bottom: 8px;
   }
 
-  .bundle-item .product-row {
+  .bundle-item .bundle-contents-toggle {
+    font-size: 0.8rem;
+    padding: 6px 10px;
+  }
+
+  .bundle-item .product-info {
     flex-direction: column;
+    align-items: flex-start;
     gap: 4px;
   }
 }

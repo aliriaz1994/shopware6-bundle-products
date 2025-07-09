@@ -31,6 +31,8 @@ class BundleController extends StorefrontController
     private const string BUNDLE_LINE_ITEM_PREFIX = 'bundle-';
     private const int SUCCESS_STATUS_CODE = 200;
     private const int INTERNAL_ERROR_STATUS_CODE = 500;
+    private const int DEFAULT_QUANTITY = 1;
+    private const int MAX_QUANTITY = 999;
 
     public function __construct(
         private readonly BundleService $bundleService,
@@ -57,21 +59,47 @@ class BundleController extends StorefrontController
             $requestData = $this->parseRequestData($request);
             $bundleId = $this->validateBundleId($requestData);
             $currentProductId = $this->validateCurrentProductId($requestData);
+            $quantity = $this->validateAndParseQuantity($requestData);
+            $replaceExisting = $this->shouldReplaceExisting($requestData);
 
             $bundle = $this->loadAndValidateBundle($bundleId, $context);
             $bundlePricing = $this->calculateBundlePricing($bundle, $currentProductId, $context);
 
             $cart = $this->cartService->getCart($context->getToken(), $context);
-            $this->removeExistingBundleItems($cart, $bundleId, $context);
 
-            $bundleLineItem = $this->createBundleLineItem($bundleId, $currentProductId, $bundlePricing, $context);
-            $cart->add($bundleLineItem);
+            // Handle existing bundle items based on request
+            if ($replaceExisting) {
+                $this->removeExistingBundleItems($cart, $bundleId, $context);
+                // Create new bundle item after removing existing ones
+                $bundleLineItem = $this->createBundleLineItem($bundleId, $currentProductId, $bundlePricing, $quantity, $context);
+                $cart->add($bundleLineItem);
+                $message = sprintf('Bundle - %s (x%d) added to your shopping cart', $bundle->getName(), $quantity);
+            } else {
+                // Check if we can add more quantity to existing item
+                $existingItem = $this->findExistingBundleItem($cart, $bundleId, $currentProductId);
+                if ($existingItem) {
+                    $newQuantity = $existingItem->getQuantity() + $quantity;
+                    if ($newQuantity > self::MAX_QUANTITY) {
+                        throw new \InvalidArgumentException(
+                            sprintf('Cannot add %d items. Maximum quantity per bundle is %d', $quantity, self::MAX_QUANTITY)
+                        );
+                    }
+
+                    // Update existing item quantity
+                    $this->updateBundleItemQuantity($cart, $existingItem, $newQuantity, $bundlePricing, $context);
+                    $message = sprintf('Bundle - %s quantity updated to %d in your shopping cart', $bundle->getName(), $newQuantity);
+                } else {
+                    // Add new bundle item
+                    $bundleLineItem = $this->createBundleLineItem($bundleId, $currentProductId, $bundlePricing, $quantity, $context);
+                    $cart->add($bundleLineItem);
+                    $message = sprintf('Bundle - %s (x%d) added to your shopping cart', $bundle->getName(), $quantity);
+                }
+            }
+
             $cart->markModified();
             $this->recalculateCart($cart, $context);
 
-            $message = sprintf('Bundle - %s added to your shopping cart', $bundle->getName());
             $this->addFlash(self::SUCCESS, $message);
-
             return $this->createActionResponse($request);
 
         } catch (\InvalidArgumentException $e) {
@@ -80,11 +108,189 @@ class BundleController extends StorefrontController
         } catch (\Exception $e) {
             $this->logger->error('Unexpected error adding bundle to cart', [
                 'exception' => $e->getMessage(),
-                'bundleId' => $bundleId ?? 'unknown'
+                'bundleId' => $bundleId ?? 'unknown',
+                'quantity' => $quantity ?? 'unknown'
             ]);
             $this->addFlash(self::DANGER, 'An unexpected error occurred while adding the bundle to cart');
             return $this->createActionResponse($request);
         }
+    }
+
+    #[Route(
+        path: '/bundle/update-quantity',
+        name: 'frontend.bundle.update-quantity',
+        options: ['seo' => false],
+        defaults: [
+            '_routeScope' => ['storefront'],
+            'XmlHttpRequest' => true,
+            'csrf_protected' => false
+        ],
+        methods: ['POST', 'PUT']
+    )]
+    public function updateQuantity(Request $request, SalesChannelContext $context): Response
+    {
+        try {
+            $requestData = $this->parseRequestData($request);
+            $lineItemId = $requestData['line-item-id'] ?? null;
+            $newQuantity = $this->validateAndParseQuantity($requestData, 'quantity');
+
+            if (!$lineItemId) {
+                throw new \InvalidArgumentException('Line item ID is required');
+            }
+
+            $cart = $this->cartService->getCart($context->getToken(), $context);
+            $lineItem = $cart->getLineItems()->get($lineItemId);
+
+            if (!$lineItem) {
+                throw new \InvalidArgumentException('Bundle item not found in cart');
+            }
+
+            if (!$lineItem->getPayloadValue('isBundle')) {
+                throw new \InvalidArgumentException('Item is not a bundle');
+            }
+
+            $bundleId = $lineItem->getPayloadValue('bundleId');
+            $currentProductId = $lineItem->getPayloadValue('mainProductId');
+
+            // Recalculate pricing for new quantity
+            $bundle = $this->loadAndValidateBundle($bundleId, $context);
+            $bundlePricing = $this->calculateBundlePricing($bundle, $currentProductId, $context);
+
+            $this->updateBundleItemQuantity($cart, $lineItem, $newQuantity, $bundlePricing, $context);
+            $cart = $this->cartService->recalculate($cart, $context);
+
+            if (!$this->traceErrors($cart)) {
+                $this->addFlash(self::SUCCESS, sprintf('Bundle quantity updated to %d', $newQuantity));
+            }
+
+            return $this->createActionResponse($request);
+
+        } catch (\InvalidArgumentException $e) {
+            $this->addFlash(self::DANGER, $e->getMessage());
+            return $this->createActionResponse($request);
+        } catch (\Exception $e) {
+            $this->logger->error('Error updating bundle quantity', [
+                'exception' => $e->getMessage(),
+                'lineItemId' => $lineItemId ?? 'unknown'
+            ]);
+            $this->addFlash(self::DANGER, 'An error occurred while updating the bundle quantity');
+            return $this->createActionResponse($request);
+        }
+    }
+
+    /**
+     * Update existing bundle item quantity
+     */
+    private function updateBundleItemQuantity(
+        Cart $cart,
+        LineItem $lineItem,
+        int $newQuantity,
+        array $bundlePricing,
+        SalesChannelContext $context
+    ): void {
+        if ($newQuantity <= 0) {
+            $this->cartService->remove($cart, $lineItem->getId(), $context);
+            return;
+        }
+
+        if ($newQuantity > self::MAX_QUANTITY) {
+            throw new \InvalidArgumentException(
+                sprintf('Maximum quantity per bundle is %d', self::MAX_QUANTITY)
+            );
+        }
+
+        $currentProductId = $lineItem->getPayloadValue('mainProductId');
+        $taxRate = $this->getProductTaxRate($currentProductId, $context->getContext());
+
+        // Recalculate prices for new quantity
+        $bundleUnitPrice = $bundlePricing['finalPrice'];
+        $bundleTotalGrossPrice = $bundleUnitPrice * $newQuantity;
+        $bundleTaxAmount = $this->calculateTaxAmount($bundleTotalGrossPrice, $taxRate, $context);
+        $bundleTotalNetPrice = $bundleTotalGrossPrice - $bundleTaxAmount;
+
+        // Update tax structures
+        $taxRules = new TaxRuleCollection([new TaxRule($taxRate)]);
+        $calculatedTaxes = new CalculatedTaxCollection([
+            new CalculatedTax($bundleTaxAmount, $taxRate, $bundleTotalGrossPrice)
+        ]);
+
+        // Update line item
+        $lineItem->setQuantity($newQuantity);
+
+        $calculatedPrice = new CalculatedPrice(
+            $bundleTotalNetPrice,
+            $bundleTotalGrossPrice,
+            $calculatedTaxes,
+            $taxRules,
+            $newQuantity
+        );
+
+        $lineItem->setPrice($calculatedPrice);
+
+        // Update price definition
+        $priceDefinition = new QuantityPriceDefinition(
+            $bundleUnitPrice,
+            $taxRules,
+            $newQuantity
+        );
+        $lineItem->setPriceDefinition($priceDefinition);
+
+        // Update payload
+        $payload = $lineItem->getPayload();
+        $payload['quantity'] = $newQuantity;
+        $payload['unitPrice'] = $bundleUnitPrice;
+        $payload['totalPrice'] = $bundleTotalGrossPrice;
+        $lineItem->setPayload($payload);
+
+        $cart->markModified();
+    }
+
+    /**
+     * Find existing bundle item in cart
+     */
+    private function findExistingBundleItem(Cart $cart, string $bundleId, string $currentProductId): ?LineItem
+    {
+        foreach ($cart->getLineItems() as $lineItem) {
+            if ($lineItem->getPayloadValue('bundleId') === $bundleId &&
+                $lineItem->getPayloadValue('mainProductId') === $currentProductId) {
+                return $lineItem;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Validate and parse quantity from request
+     */
+    private function validateAndParseQuantity(array $requestData, string $key = 'quantity'): int
+    {
+        $quantity = $requestData[$key] ?? self::DEFAULT_QUANTITY;
+
+        if (is_string($quantity)) {
+            $quantity = (int) $quantity;
+        }
+
+        if (!is_int($quantity) || $quantity < 1) {
+            throw new \InvalidArgumentException('Quantity must be a positive integer');
+        }
+
+        if ($quantity > self::MAX_QUANTITY) {
+            throw new \InvalidArgumentException(
+                sprintf('Maximum quantity per bundle is %d', self::MAX_QUANTITY)
+            );
+        }
+
+        return $quantity;
+    }
+
+    /**
+     * Check if existing items should be replaced
+     */
+    private function shouldReplaceExisting(array $requestData): bool
+    {
+        return ($requestData['replace-existing'] ?? false) === true ||
+            ($requestData['replace-existing'] ?? false) === 'true' ||
+            ($requestData['replace-existing'] ?? false) === '1';
     }
 
     #[Route(
@@ -197,39 +403,40 @@ class BundleController extends StorefrontController
     }
 
     /**
-     * FIXED: Maintain bundle price while applying correct taxes
+     * Enhanced bundle line item creation with quantity support
      */
-    private function createBundleLineItem(string $bundleId, string $currentProductId, array $bundlePricing, SalesChannelContext $context): LineItem
-    {
+    private function createBundleLineItem(
+        string $bundleId,
+        string $currentProductId,
+        array $bundlePricing,
+        int $quantity,
+        SalesChannelContext $context
+    ): LineItem {
         $lineItemId = self::BUNDLE_LINE_ITEM_PREFIX . substr($bundleId, 0, 8) . '-' . uniqid();
 
-        // Step 1: Get tax rate (existing method unchanged)
+        // Get tax rate and media data
         $taxRate = $this->getProductTaxRate($currentProductId, $context->getContext());
-
-        // Step 2: Get media data and entity (enhanced method)
         $mediaInfo = $this->getProductWithMediaEntity($currentProductId, $context);
         $productData = $mediaInfo['productData'];
 
-        // Step 3: Calculate tax amounts manually for the BUNDLE PRICE (not main product price)
-        $bundleGrossPrice = $bundlePricing['finalPrice']; // This is the bundle's discounted price
-        $bundleTaxAmount = $this->calculateTaxAmount($bundleGrossPrice, $taxRate, $context);
-        $bundleNetPrice = $bundleGrossPrice - $bundleTaxAmount;
+        // Calculate prices for the specified quantity
+        $bundleUnitPrice = $bundlePricing['finalPrice'];
+        $bundleTotalGrossPrice = $bundleUnitPrice * $quantity;
+        $bundleTaxAmount = $this->calculateTaxAmount($bundleTotalGrossPrice, $taxRate, $context);
+        $bundleTotalNetPrice = $bundleTotalGrossPrice - $bundleTaxAmount;
 
-        // Step 4: Create tax objects for the bundle price
-        $taxRules = new TaxRuleCollection([
-            new TaxRule($taxRate)
-        ]);
-
+        // Create tax structures
+        $taxRules = new TaxRuleCollection([new TaxRule($taxRate)]);
         $calculatedTaxes = new CalculatedTaxCollection([
-            new CalculatedTax($bundleTaxAmount, $taxRate, $bundleGrossPrice)
+            new CalculatedTax($bundleTaxAmount, $taxRate, $bundleTotalGrossPrice)
         ]);
 
-        // Step 5: Create bundle line item
+        // Create bundle line item with quantity
         $bundleLineItem = new LineItem(
             $lineItemId,
-            LineItem::CUSTOM_LINE_ITEM_TYPE, // CRITICAL: Use CUSTOM type to prevent price override
+            LineItem::CUSTOM_LINE_ITEM_TYPE,
             $currentProductId,
-            1
+            $quantity  // Set the actual quantity
         );
 
         $bundleLineItem->setLabel($bundlePricing['currentProduct']['name']);
@@ -237,27 +444,32 @@ class BundleController extends StorefrontController
         $bundleLineItem->setStackable(true);
         $bundleLineItem->setRemovable(true);
 
-        // Step 6: Set calculated price with bundle amounts (not product amounts)
+        // Set calculated price for total quantity
         $calculatedPrice = new CalculatedPrice(
-            $bundleNetPrice,        // Bundle net price
-            $bundleGrossPrice,      // Bundle gross price
-            $calculatedTaxes,       // Bundle tax amounts
-            $taxRules,             // Tax rules
-            1                      // Quantity
+            $bundleTotalNetPrice,
+            $bundleTotalGrossPrice,
+            $calculatedTaxes,
+            $taxRules,
+            $quantity
         );
 
         $bundleLineItem->setPrice($calculatedPrice);
 
-        // Step 7: Set price definition to lock the price
+        // Set price definition with unit price
         $priceDefinition = new QuantityPriceDefinition(
-            $bundleGrossPrice,     // Use bundle price, not product price
+            $bundleUnitPrice,  // Unit price
             $taxRules,
-            1
+            $quantity
         );
         $bundleLineItem->setPriceDefinition($priceDefinition);
 
-        // Step 8: Add payload with price override flags
-        $bundleLineItem->setPayload($this->createBundlePayload($bundleId, $currentProductId, $bundlePricing, $productData));
+        // Enhanced payload with quantity information
+        $payload = $this->createBundlePayload($bundleId, $currentProductId, $bundlePricing, $productData);
+        $payload['quantity'] = $quantity;
+        $payload['unitPrice'] = $bundleUnitPrice;
+        $payload['totalPrice'] = $bundleTotalGrossPrice;
+
+        $bundleLineItem->setPayload($payload);
 
         return $bundleLineItem;
     }
@@ -624,29 +836,6 @@ class BundleController extends StorefrontController
                     'totalPrice' => $totalProductPrice,
                     'isOptional' => $bundleProduct->isOptional(),
                     'source' => 'bundleProduct'
-                ];
-            }
-        }
-
-        if ($bundle->getProductBundles()) {
-            foreach ($bundle->getProductBundles() as $productBundle) {
-                $product = $productBundle->getProduct();
-                if ($product === null) {
-                    continue;
-                }
-
-                $productPrice = $this->getProductPrice($product);
-                $originalPrice += $productPrice;
-
-                $productDetails[] = [
-                    'id' => $product->getId(),
-                    'name' => $product->getName(),
-                    'quantity' => 1,
-                    'unitPrice' => $productPrice,
-                    'totalPrice' => $productPrice,
-                    'isMainProduct' => true,
-                    'bundleSlot' => $productBundle->getBundleSlot(),
-                    'source' => 'productBundle'
                 ];
             }
         }

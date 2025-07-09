@@ -1,4 +1,4 @@
-// Updated bundle-widget.plugin.js - Following Shopware Core Standards with Cart Page Refresh Fix
+// Enhanced bundle-widget.plugin.js - Complete bundle functionality with quantity controls
 
 import Plugin from 'src/plugin-system/plugin.class';
 import DomAccess from 'src/helper/dom-access.helper';
@@ -11,18 +11,27 @@ export default class BundleWidgetPlugin extends Plugin {
     static options = {
         addToCartUrl: '/bundle/add-to-cart',
         removeFromCartUrl: '/bundle/remove-from-cart',
+        updateQuantityUrl: '/bundle/update-quantity',
         cartInfoUrl: '/bundle/cart-info',
         bundleContainerSelector: '.new-bundle-container, .digipercep-bundle-container',
         bundleFormSelector: 'form[data-bundle-form="true"], form.new-bundle-form, form.bundle-main-form',
         bundleDetailsToggleSelector: '.toggle-details',
 
-        // UPDATED: Separate selectors for different contexts
+        // Quantity control selectors
+        bundleQuantityFormSelector: '.bundle-quantity-form',
+        bundleQuantityInputSelector: '.bundle-quantity-input',
+        bundleQuantityButtonSelector: '.bundle-qty-btn',
+        bundleQuantityIncreaseSelector: '.js-btn-plus',
+        bundleQuantityDecreaseSelector: '.js-btn-minus',
+
+        // Different contexts for removal
         bundleRemoveSelector: '.bundle-remove-btn', // offcanvas - minicart
         bundleRemoveStandardSelector: '.bundle-remove-standard', // Checkout cart page
 
         bundleToggleSelector: '.bundle-contents-toggle, [data-bundle-toggle]',
-        bundleItemSelector: '.bundle-item',
+        bundleItemSelector: '.bundle-item, .line-item-bundle',
         requestDelay: 300,
+        quantityUpdateDelay: 1000,
         bundleButtonSelectors: [
             'button[type="submit"].new-bundle-submit',
             'button[type="submit"].bundle-submit',
@@ -35,8 +44,10 @@ export default class BundleWidgetPlugin extends Plugin {
     init() {
         this.client = new HttpClient();
         this._lastRequestTime = 0;
+        this._quantityUpdateTimeouts = new Map();
         this._registerEvents();
         this._initBundles();
+        this._initQuantityControls();
     }
 
     _initBundles() {
@@ -51,6 +62,48 @@ export default class BundleWidgetPlugin extends Plugin {
         }
 
         this.$emitter.publish('bundlesInitialized', { count: bundles.length });
+    }
+
+    _initQuantityControls() {
+        // Initialize all existing quantity controls
+        const quantityForms = document.querySelectorAll(this.options.bundleQuantityFormSelector);
+        Iterator.iterate(quantityForms, form => this._initQuantityForm(form));
+
+        // Initialize quantity buttons
+        const quantityButtons = document.querySelectorAll(this.options.bundleQuantityButtonSelector);
+        Iterator.iterate(quantityButtons, button => this._initQuantityButton(button));
+
+        // Initialize quantity inputs
+        const quantityInputs = document.querySelectorAll(this.options.bundleQuantityInputSelector);
+        Iterator.iterate(quantityInputs, input => this._initQuantityInput(input));
+
+        this.$emitter.publish('bundleQuantityControlsInitialized');
+    }
+
+    _initQuantityForm(form) {
+        const input = form.querySelector(this.options.bundleQuantityInputSelector);
+        if (input) {
+            const quantity = parseInt(input.value) || 1;
+            input.setAttribute('data-original-value', quantity);
+            this._updateQuantityButtonStates(form, quantity);
+        }
+    }
+
+    _initQuantityButton(button) {
+        // Remove any existing event listeners to prevent duplicates
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
+
+        newButton.addEventListener('click', this._onQuantityButtonClick.bind(this));
+    }
+
+    _initQuantityInput(input) {
+        // Remove any existing event listeners to prevent duplicates
+        const newInput = input.cloneNode(true);
+        input.parentNode.replaceChild(newInput, input);
+
+        newInput.addEventListener('input', this._onQuantityInputChange.bind(this));
+        newInput.addEventListener('change', this._onQuantityInputChange.bind(this));
     }
 
     _cleanupAllButtonStates() {
@@ -168,12 +221,231 @@ export default class BundleWidgetPlugin extends Plugin {
         document.addEventListener('click', this._onDocumentClick.bind(this));
         document.addEventListener('cart-updated', this._onCartUpdated.bind(this));
         document.addEventListener('cart-manually-refreshed', this._onCartUpdated.bind(this));
+
+        // Observe DOM changes for dynamically added bundle items
+        this._observeQuantityControls();
+    }
+
+    _observeQuantityControls() {
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType === 1) {
+                        // Check for bundle items
+                        const bundleItems = node.matches && node.matches(this.options.bundleItemSelector)
+                            ? [node]
+                            : node.querySelectorAll ? node.querySelectorAll(this.options.bundleItemSelector) : [];
+
+                        if (bundleItems.length > 0) {
+                            Iterator.iterate(bundleItems, item => this._initBundleItemQuantityControls(item));
+                        }
+
+                        // Check for quantity controls specifically
+                        const quantityControls = node.querySelectorAll ? node.querySelectorAll(this.options.bundleQuantityButtonSelector) : [];
+                        if (quantityControls.length > 0) {
+                            Iterator.iterate(quantityControls, button => this._initQuantityButton(button));
+                        }
+
+                        const quantityInputs = node.querySelectorAll ? node.querySelectorAll(this.options.bundleQuantityInputSelector) : [];
+                        if (quantityInputs.length > 0) {
+                            Iterator.iterate(quantityInputs, input => this._initQuantityInput(input));
+                        }
+                    }
+                });
+            });
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    }
+
+    _initBundleItemQuantityControls(bundleItem) {
+        const quantityForm = bundleItem.querySelector(this.options.bundleQuantityFormSelector);
+        if (quantityForm) {
+            this._initQuantityForm(quantityForm);
+        }
+
+        const quantityButtons = bundleItem.querySelectorAll(this.options.bundleQuantityButtonSelector);
+        Iterator.iterate(quantityButtons, button => this._initQuantityButton(button));
+
+        const quantityInputs = bundleItem.querySelectorAll(this.options.bundleQuantityInputSelector);
+        Iterator.iterate(quantityInputs, input => this._initQuantityInput(input));
+    }
+
+    _onQuantityButtonClick(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const button = event.currentTarget;
+        const action = button.dataset.action;
+        const lineItemId = button.dataset.lineItemId;
+        const form = button.closest(this.options.bundleQuantityFormSelector);
+        const input = form.querySelector(this.options.bundleQuantityInputSelector);
+
+        if (!input || !lineItemId) {
+            console.warn('Bundle quantity control: missing input or line item ID');
+            return;
+        }
+
+        let currentQuantity = parseInt(input.value) || 1;
+        let newQuantity = currentQuantity;
+
+        if (action === 'increase' && currentQuantity < 999) {
+            newQuantity = currentQuantity + 1;
+        } else if (action === 'decrease' && currentQuantity > 1) {
+            newQuantity = currentQuantity - 1;
+        } else {
+            return; // No change needed
+        }
+
+        // Update input value
+        input.value = newQuantity;
+        input.setAttribute('data-original-value', newQuantity);
+
+        // Update button states
+        this._updateQuantityButtonStates(form, newQuantity);
+
+        // Submit quantity update
+        this._submitQuantityUpdate(form, lineItemId, newQuantity);
+
+        this.$emitter.publish('bundleQuantityChanged', { lineItemId, oldQuantity: currentQuantity, newQuantity });
+    }
+
+    _onQuantityInputChange(event) {
+        const input = event.currentTarget;
+        const form = input.closest(this.options.bundleQuantityFormSelector);
+        const lineItemIdInput = form.querySelector('input[name="line-item-id"]');
+        const lineItemId = lineItemIdInput ? lineItemIdInput.value : input.dataset.lineItemId;
+
+        if (!lineItemId) {
+            console.warn('Bundle quantity control: missing line item ID');
+            return;
+        }
+
+        const newQuantity = parseInt(input.value);
+        const originalQuantity = parseInt(input.getAttribute('data-original-value') || input.defaultValue);
+
+        // Clear existing timeout for this input
+        if (this._quantityUpdateTimeouts.has(lineItemId)) {
+            clearTimeout(this._quantityUpdateTimeouts.get(lineItemId));
+        }
+
+        // Validate quantity
+        if (newQuantity < 1 || newQuantity > 999 || newQuantity === originalQuantity) {
+            return;
+        }
+
+        // Update button states immediately
+        this._updateQuantityButtonStates(form, newQuantity);
+
+        // Set timeout for submission
+        const timeout = setTimeout(() => {
+            this._submitQuantityUpdate(form, lineItemId, newQuantity);
+            this._quantityUpdateTimeouts.delete(lineItemId);
+        }, this.options.quantityUpdateDelay);
+
+        this._quantityUpdateTimeouts.set(lineItemId, timeout);
+
+        this.$emitter.publish('bundleQuantityInputChanged', { lineItemId, newQuantity });
+    }
+
+    _updateQuantityButtonStates(form, quantity) {
+        const decreaseBtn = form.querySelector('[data-action="decrease"]');
+        const increaseBtn = form.querySelector('[data-action="increase"]');
+
+        if (decreaseBtn) {
+            decreaseBtn.disabled = quantity <= 1;
+        }
+
+        if (increaseBtn) {
+            increaseBtn.disabled = quantity >= 999;
+        }
+    }
+
+    _submitQuantityUpdate(form, lineItemId, quantity) {
+        console.log('Submitting bundle quantity update:', lineItemId, quantity);
+
+        // Show loading state
+        const loadingTarget = form.closest(this.options.bundleItemSelector) || form;
+        ElementLoadingIndicatorUtil.create(loadingTarget);
+
+        // Disable form controls during update
+        this._setFormLoadingState(form, true);
+
+        // Prepare form data
+        const formData = new FormData();
+        formData.append('line-item-id', lineItemId);
+        formData.append('quantity', quantity);
+        formData.append('redirectTo', 'frontend.cart.offcanvas');
+
+        this.$emitter.publish('beforeBundleQuantityUpdate', { lineItemId, quantity });
+
+        // Submit request
+        this.client.post(this.options.updateQuantityUrl, formData, (response) => {
+            this._onQuantityUpdateSuccess(response, form, lineItemId, quantity, loadingTarget);
+        }, (error) => {
+            this._onQuantityUpdateError(error, form, lineItemId, loadingTarget);
+        });
+    }
+
+    _onQuantityUpdateSuccess(response, form, lineItemId, quantity, loadingTarget) {
+        console.log('Bundle quantity update successful');
+
+        // Update the original value
+        const input = form.querySelector(this.options.bundleQuantityInputSelector);
+        if (input) {
+            input.setAttribute('data-original-value', quantity);
+            input.defaultValue = quantity;
+        }
+
+        // Remove loading state
+        ElementLoadingIndicatorUtil.remove(loadingTarget);
+        this._setFormLoadingState(form, false);
+
+        // Update cart display
+        this._updateOffCanvasContent(() => {
+            this._fetchCartWidgets();
+            this.$emitter.publish('bundleQuantityUpdateSuccess', { lineItemId, quantity, response });
+        });
+    }
+
+    _onQuantityUpdateError(error, form, lineItemId, loadingTarget) {
+        console.error('Bundle quantity update failed:', error);
+
+        // Revert input value
+        const input = form.querySelector(this.options.bundleQuantityInputSelector);
+        if (input) {
+            const originalValue = input.getAttribute('data-original-value') || input.defaultValue;
+            input.value = originalValue;
+            this._updateQuantityButtonStates(form, parseInt(originalValue));
+        }
+
+        // Remove loading state
+        ElementLoadingIndicatorUtil.remove(loadingTarget);
+        this._setFormLoadingState(form, false);
+
+        this.$emitter.publish('bundleQuantityUpdateError', { lineItemId, error });
+    }
+
+    _setFormLoadingState(form, loading) {
+        const buttons = form.querySelectorAll(this.options.bundleQuantityButtonSelector);
+        const input = form.querySelector(this.options.bundleQuantityInputSelector);
+
+        Iterator.iterate(buttons, btn => btn.disabled = loading);
+        if (input) input.disabled = loading;
+
+        if (loading) {
+            form.classList.add('loading');
+        } else {
+            form.classList.remove('loading');
+        }
     }
 
     _onDocumentClick(event) {
-        // ONLY handle offcanvas bundle removal (AJAX) - don't interfere with cart page
+        // Handle offcanvas bundle removal (AJAX)
         if (event.target.closest(this.options.bundleRemoveSelector)) {
-            // Check if we're in offcanvas context - only then handle with AJAX
             const offcanvasContext = event.target.closest('.offcanvas-cart') ||
                 event.target.closest('.js-offcanvas-cart') ||
                 document.querySelector('.offcanvas-cart.show');
@@ -181,13 +453,11 @@ export default class BundleWidgetPlugin extends Plugin {
             if (offcanvasContext) {
                 this._onBundleRemove(event);
             }
-            // If not in offcanvas, let it submit normally (cart page)
         }
         // Handle bundle toggle in cart
         else if (event.target.closest(this.options.bundleToggleSelector)) {
             this._onBundleToggleInCart(event);
         }
-        // Don't handle .bundle-remove-standard at all - let Shopware handle it naturally
     }
 
     _onBundleFormSubmit(form, bundleId, event) {
@@ -210,13 +480,11 @@ export default class BundleWidgetPlugin extends Plugin {
 
         this._lastRequestTime = Date.now();
 
-        // Use Shopware's standard pattern - open offcanvas directly
         this._openOffCanvasCart(this.options.addToCartUrl, requestData, submitButton);
 
         return false;
     }
 
-    // UPDATED: Handle offcanvas bundle removal (AJAX)
     _onBundleRemove(event) {
         event.preventDefault();
         event.stopPropagation();
@@ -228,21 +496,15 @@ export default class BundleWidgetPlugin extends Plugin {
 
         this.$emitter.publish('beforeBundleRemove', { bundleId, lineItemId });
 
-        // Find the bundle item for loading indicator
         const bundleItem = button.closest(this.options.bundleItemSelector);
         const loadingTarget = bundleItem || button.parentElement;
 
-        // Create a form element like Shopware's regular cart items have
         const form = this._createRemovalForm(bundleId, lineItemId);
 
-        // Show loading indicator on the actual bundle item
         ElementLoadingIndicatorUtil.create(loadingTarget);
 
-        // Follow Shopware's _fireRequest pattern exactly
         this._fireRemovalRequest(form, loadingTarget);
     }
-
-    // REMOVED: _onBundleRemoveStandard method - let Shopware handle cart page removals naturally
 
     _fireRemovalRequest(form, loadingTarget) {
         const requestUrl = form.action;
@@ -251,10 +513,7 @@ export default class BundleWidgetPlugin extends Plugin {
         this.$emitter.publish('beforeFireRequest');
 
         this.client.post(requestUrl, data, (response) => {
-            // Remove loading indicator from the target element
             ElementLoadingIndicatorUtil.remove(loadingTarget);
-
-            // Handle the response like Shopware does
             this._onRemovalComplete(response);
         });
     }
@@ -280,7 +539,6 @@ export default class BundleWidgetPlugin extends Plugin {
             form.appendChild(lineItemInput);
         }
 
-        // Add redirectTo for offcanvas
         const redirectInput = document.createElement('input');
         redirectInput.type = 'hidden';
         redirectInput.name = 'redirectTo';
@@ -291,7 +549,6 @@ export default class BundleWidgetPlugin extends Plugin {
     }
 
     _onRemovalComplete(response) {
-        // This follows Shopware's exact pattern for handling cart removal responses
         try {
             const offcanvasInstances = window.PluginManager.getPluginInstances('OffCanvasCart');
             if (offcanvasInstances?.length > 0) {
@@ -310,7 +567,6 @@ export default class BundleWidgetPlugin extends Plugin {
         this.$emitter.publish('bundleRemoveSuccess', { response });
     }
 
-    // Updated _updateOffCanvasContent method with callback support
     _updateOffCanvasContent(callback = null) {
         try {
             const offcanvasInstances = window.PluginManager.getPluginInstances('OffCanvasCart');
@@ -318,20 +574,15 @@ export default class BundleWidgetPlugin extends Plugin {
                 const offcanvas = offcanvasInstances[0];
 
                 if (typeof offcanvas._updateOffCanvasContent === 'function') {
-                    // Use Shopware's standard offcanvas update method
                     this.client.get(window.router['frontend.cart.offcanvas'], response => {
                         offcanvas._updateOffCanvasContent(response);
-
-                        // Re-initialize plugins following Shopware pattern
                         window.PluginManager.initializePlugins();
 
-                        // Execute callback if provided
                         if (callback && typeof callback === 'function') {
                             setTimeout(callback, 100);
                         }
                     }, 'text/html');
                 } else {
-                    // Fallback
                     if (callback && typeof callback === 'function') {
                         callback();
                     }
@@ -383,46 +634,36 @@ export default class BundleWidgetPlugin extends Plugin {
             formData.append('bundle-source', 'storefront');
         }
 
-        // Add Shopware's standard redirectTo parameter
         formData.append('redirectTo', 'frontend.cart.offcanvas');
 
         return formData;
     }
 
-    // NEW: Follow Shopware's exact pattern for opening offcanvas cart
     _openOffCanvasCart(requestUrl, formData, loadingElement) {
         const offCanvasCartInstances = window.PluginManager.getPluginInstances('OffCanvasCart');
 
         if (offCanvasCartInstances.length > 0) {
-            // Get the first offcanvas instance (following Shopware pattern)
             const offcanvas = offCanvasCartInstances[0];
 
             if (typeof offcanvas.openOffCanvas === 'function') {
-                // Set loading state
                 if (loadingElement) {
                     ElementLoadingIndicatorUtil.create(loadingElement);
                     this._setButtonLoadingState(loadingElement, true);
                 }
 
-                // This is Shopware's standard way - it handles everything
                 offcanvas.openOffCanvas(requestUrl, formData, (response) => {
-                    // Clean up loading state
                     if (loadingElement) {
                         ElementLoadingIndicatorUtil.remove(loadingElement);
                         this._setButtonLoadingState(loadingElement, false);
                     }
 
-                    // Update cart widgets following Shopware pattern
                     this._fetchCartWidgets();
-
-                    // Publish success event
                     this.$emitter.publish('bundleAddSuccess', { response });
                 });
             }
         }
     }
 
-    // UPDATED: Following Shopware's cart widget refresh pattern
     _fetchCartWidgets() {
         const cartWidgetInstances = window.PluginManager.getPluginInstances('CartWidget');
         Iterator.iterate(cartWidgetInstances, instance => {
