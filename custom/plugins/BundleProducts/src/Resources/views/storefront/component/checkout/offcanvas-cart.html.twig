@@ -110,8 +110,7 @@
                                         <button type="button"
                                                 class="btn btn-outline-light btn-minus js-btn-minus"
                                                 aria-label="Decrease quantity of Bundle - {{ lineItem.label }}"
-                                                data-focus-id="line-item-offcanvas-quantity-down-{{ lineItem.id }}"
-                                                onclick="updateBundleQuantity('{{ lineItem.id }}', {{ lineItem.quantity - 1 }})">
+                                                data-focus-id="line-item-offcanvas-quantity-down-{{ lineItem.id }}">
                                             <span class="icon icon-minus icon-xs" aria-hidden="true">
                                                 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24" height="24" viewBox="0 0 24 24">
                                                     <defs>
@@ -130,15 +129,12 @@
                                                step="1"
                                                value="{{ lineItem.quantity }}"
                                                aria-label="Quantity of Bundle - {{ lineItem.label }}"
-                                               data-focus-id="line-item-offcanvas-quantity-{{ lineItem.id }}"
-                                               onchange="updateBundleQuantityFromInput('{{ lineItem.id }}', this.value)">
+                                               data-focus-id="line-item-offcanvas-quantity-{{ lineItem.id }}">
 
                                         <button type="button"
                                                 class="btn btn-outline-light btn-plus js-btn-plus"
                                                 aria-label="Increase quantity of Bundle - {{ lineItem.label }}"
-                                                data-focus-id="line-item-offcanvas-quantity-up-{{ lineItem.id }}"
-                                                {% if lineItem.quantity >= 100 %}disabled{% endif %}
-                                                onclick="updateBundleQuantity('{{ lineItem.id }}', {{ lineItem.quantity + 1 }})">
+                                                data-focus-id="line-item-offcanvas-quantity-up-{{ lineItem.id }}">
                                             <span class="icon icon-plus icon-xs" aria-hidden="true">
                                                 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24" height="24" viewBox="0 0 24 24">
                                                     <defs>

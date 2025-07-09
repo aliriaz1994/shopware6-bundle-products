@@ -67,11 +67,6 @@
   color: #374151;
 }
 
-/* Bundle remove button */
-.bundle-item .line-item-remove-button {
-  /* Keep Shopware's default remove button styling */
-}
-
 /* Bundle contents section */
 .bundle-item .bundle-contents-section {
   margin-top: 15px;
@@ -137,6 +132,7 @@
 .bundle-item .product-info {
   display: flex;
   justify-content: space-between;
+  color: black;
 }
 
 /* Bundle badges */
