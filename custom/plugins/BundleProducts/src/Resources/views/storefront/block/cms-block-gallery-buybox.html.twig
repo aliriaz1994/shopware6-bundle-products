@@ -15,8 +15,22 @@
 
             {% for slotName, assignment in bundleAssignments %}
                 {% if assignment and assignment.bundle and assignment.bundle.active %}
-                    {% set hasActiveBundle = true %}
-                    {% set bundleCount = bundleCount + 1 %}
+                    {# NEW CHECK: Only count bundles that have bundle products assigned #}
+                    {% set hasValidBundleProducts = false %}
+                    {% if assignment.bundle.bundleProducts is defined and assignment.bundle.bundleProducts is iterable %}
+                        {% for bundleProduct in assignment.bundle.bundleProducts %}
+                            {% if bundleProduct.product and bundleProduct.product.id != page.product.id %}
+                                {% set hasValidBundleProducts = true %}
+                                {% break %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+
+                    {# Only count if bundle has valid products #}
+                    {% if hasValidBundleProducts %}
+                        {% set hasActiveBundle = true %}
+                        {% set bundleCount = bundleCount + 1 %}
+                    {% endif %}
                 {% endif %}
             {% endfor %}
 
@@ -27,7 +41,7 @@
                             <path d="M12 2L2 7V17L12 22L22 17V7L12 2ZM12 4.41L19.09 8L12 11.59L4.91 8L12 4.41ZM4 9.5L11 13.09V20.5L4 16.91V9.5ZM13 20.5V13.09L20 9.5V16.91L13 20.5Z"/>
                         </svg>
                         Bundle
-                        {% if bundleCount > 1 %}
+                        {% if bundleCount >= 1 %}
                             <span class="bundle-count-small">({{ bundleCount }})</span>
                         {% endif %}
                     </span>
@@ -59,16 +73,43 @@
 
             {% for slotName, assignment in bundleAssignments %}
                 {% if assignment and assignment.bundle and assignment.bundle.active %}
-                    {% set hasActiveBundle = true %}
-                    {% set bundleCount = bundleCount + 1 %}
-
-                    {# Calculate potential savings #}
-                    {% if assignment.bundle.discountType == 'percentage' %}
-                        {% set savings = page.product.calculatedPrice.totalPrice * assignment.bundle.discount / 100 %}
-                    {% else %}
-                        {% set savings = assignment.bundle.discount %}
+                    {# NEW CHECK: Only count bundles that have bundle products assigned #}
+                    {% set hasValidBundleProducts = false %}
+                    {% if assignment.bundle.bundleProducts is defined and assignment.bundle.bundleProducts is iterable %}
+                        {% for bundleProduct in assignment.bundle.bundleProducts %}
+                            {% if bundleProduct.product and bundleProduct.product.id != page.product.id %}
+                                {% set hasValidBundleProducts = true %}
+                                {% break %}
+                            {% endif %}
+                        {% endfor %}
                     {% endif %}
-                    {% set maxSavings = maxSavings > savings ? maxSavings : savings %}
+
+                    {# Only process if bundle has valid products #}
+                    {% if hasValidBundleProducts %}
+                        {% set hasActiveBundle = true %}
+                        {% set bundleCount = bundleCount + 1 %}
+
+                        {# Calculate potential savings - need to calculate based on total bundle price #}
+                        {% set totalBundlePrice = page.product.calculatedPrice.totalPrice %}
+                        {% if assignment.bundle.bundleProducts is defined and assignment.bundle.bundleProducts is iterable %}
+                            {% for bundleProduct in assignment.bundle.bundleProducts %}
+                                {% if bundleProduct.product and bundleProduct.product.id != page.product.id %}
+                                    {% if bundleProduct.product.calculatedPrice and bundleProduct.product.calculatedPrice.totalPrice %}
+                                        {% set totalBundlePrice = totalBundlePrice + bundleProduct.product.calculatedPrice.totalPrice %}
+                                    {% elseif bundleProduct.product.price and bundleProduct.product.price.first %}
+                                        {% set totalBundlePrice = totalBundlePrice + bundleProduct.product.price.first.gross %}
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if assignment.bundle.discountType == 'percentage' %}
+                            {% set savings = totalBundlePrice * assignment.bundle.discount / 100 %}
+                        {% else %}
+                            {% set savings = assignment.bundle.discount %}
+                        {% endif %}
+                        {% set maxSavings = maxSavings > savings ? maxSavings : savings %}
+                    {% endif %}
                 {% endif %}
             {% endfor %}
 

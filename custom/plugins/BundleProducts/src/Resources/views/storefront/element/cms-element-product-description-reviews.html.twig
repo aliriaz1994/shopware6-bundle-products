@@ -1,4 +1,3 @@
-
 {# File: custom/plugins/BundleProducts/src/Resources/views/storefront/element/cms-element-product-description-reviews.html.twig #}
 
 {% sw_extends '@Storefront/storefront/element/cms-element-product-description-reviews.html.twig' %}
@@ -11,12 +10,26 @@
 
         {% for slotName, assignment in bundleAssignments %}
             {% if assignment and assignment.bundle and assignment.bundle.active %}
-                {% set activeBundles = activeBundles|merge([{slot: slotName, data: assignment}]) %}
+                {# NEW CHECK: Only include bundles that have bundle products assigned #}
+                {% set hasValidBundleProducts = false %}
+                {% if assignment.bundle.bundleProducts is defined and assignment.bundle.bundleProducts is iterable %}
+                    {% for bundleProduct in assignment.bundle.bundleProducts %}
+                        {% if bundleProduct.product and bundleProduct.product.id != page.product.id %}
+                            {% set hasValidBundleProducts = true %}
+                            {% break %}
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+
+                {# Only add to activeBundles if it has valid bundle products #}
+                {% if hasValidBundleProducts %}
+                    {% set activeBundles = activeBundles|merge([{slot: slotName, data: assignment}]) %}
+                {% endif %}
             {% endif %}
         {% endfor %}
 
         {% if activeBundles|length > 0 %}
-            {# CRITICAL FIX: Add data-bundle-widget attribute to initialize the JavaScript plugin #}
+            {# Add data-bundle-widget attribute to initialize the JavaScript plugin #}
             <div class="bundle-widget-container new-bundle-system" data-bundle-widget="true">
 
                 <div class="h3">
