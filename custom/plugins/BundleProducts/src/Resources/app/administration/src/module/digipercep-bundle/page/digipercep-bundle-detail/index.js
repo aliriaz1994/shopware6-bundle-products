@@ -1,30 +1,25 @@
 import template from './digipercep-bundle-detail.html.twig';
 
 const { Component, Mixin } = Shopware;
-const { Criteria, EntityCollection } = Shopware.Data;
+const { Criteria } = Shopware.Data;
 
 Component.register('digipercep-bundle-detail', {
     template,
 
-    inject: ['repositoryFactory', 'loginService'],
+    inject: ['repositoryFactory'],
 
     mixins: [Mixin.getByName('notification')],
 
     data() {
         return {
-            bundle: {
-                name: '',
-                discount: 0,
-                discountType: 'percentage',
-                active: true,
-                priority: 0
-            },
+            bundle: this.getDefaultBundle(),
             bundleProducts: [],
             selectedProductToAdd: null,
             selectedProductsForAdd: [],
             isLoading: false,
             isProductsLoading: false,
-            isSaveSuccessful: false
+            isSaveSuccessful: false,
+            parentProductNames: new Map()
         };
     },
 
@@ -52,20 +47,24 @@ Component.register('digipercep-bundle-detail', {
         productCriteria() {
             const criteria = new Criteria();
             criteria.addAssociation('cover');
+            criteria.addAssociation('options.group');
             criteria.addFilter(Criteria.equals('active', true));
-            criteria.addFilter(Criteria.equals('parentId', null));
 
-            const excludeIds = this.bundleProducts.map(bp => bp.productId);
-            const selectedIds = this.selectedProductsForAdd.map(p => p.id);
-            const allExcludeIds = [...excludeIds, ...selectedIds];
+            const excludedIds = [
+                ...this.bundleProducts.map(bp => bp.productId),
+                ...this.selectedProductsForAdd.map(p => p.id)
+            ];
 
-            if (allExcludeIds.length > 0) {
+            if (excludedIds.length > 0) {
                 criteria.addFilter(Criteria.not('AND', [
-                    Criteria.equalsAny('id', allExcludeIds)
+                    Criteria.equalsAny('id', excludedIds)
                 ]));
             }
 
-            criteria.setLimit(25);
+            criteria.addSorting(Criteria.sort('parentId', 'ASC', true));
+            criteria.addSorting(Criteria.sort('productNumber', 'ASC'));
+            criteria.setLimit(50);
+
             return criteria;
         },
 
@@ -104,23 +103,45 @@ Component.register('digipercep-bundle-detail', {
         }
     },
 
-    created() {
-        this.loadBundle();
+    async created() {
+        await Promise.all([
+            this.loadBundle(),
+            this.loadParentProductNames()
+        ]);
     },
 
     methods: {
+        getDefaultBundle() {
+            return {
+                name: '',
+                discount: 0,
+                discountType: 'percentage',
+                active: true,
+                priority: 0
+            };
+        },
+
+        async loadParentProductNames() {
+            try {
+                const criteria = new Criteria();
+                criteria.addFilter(Criteria.equals('active', true));
+                criteria.addFilter(Criteria.equals('parentId', null));
+                criteria.setLimit(500);
+
+                const result = await this.productRepository.search(criteria, Shopware.Context.api);
+
+                this.parentProductNames = new Map(
+                    result.map(parent => [parent.id, parent.name])
+                );
+            } catch (error) {
+                console.error('Error loading parent product names:', error);
+            }
+        },
+
         async loadBundle() {
             if (this.isCreateMode) {
-                this.bundle = {
-                    name: '',
-                    discount: 0,
-                    discountType: 'percentage',
-                    isSelectable: false,
-                    active: true,
-                    priority: 0
-                };
+                this.bundle = this.getDefaultBundle();
                 this.bundleProducts = [];
-                this.isProductsLoading = false;
                 return;
             }
 
@@ -139,9 +160,7 @@ Component.register('digipercep-bundle-detail', {
 
                 await this.loadBundleProducts();
             } catch (error) {
-                this.createNotificationError({
-                    message: `Failed to load bundle: ${error.message}`
-                });
+                this.showError(`Failed to load bundle: ${error.message}`);
             } finally {
                 this.isLoading = false;
             }
@@ -150,7 +169,6 @@ Component.register('digipercep-bundle-detail', {
         async loadBundleProducts() {
             if (!this.bundle.id) {
                 this.bundleProducts = [];
-                this.isProductsLoading = false;
                 return;
             }
 
@@ -160,15 +178,14 @@ Component.register('digipercep-bundle-detail', {
                 const criteria = new Criteria();
                 criteria.addFilter(Criteria.equals('bundleId', this.bundle.id));
                 criteria.addAssociation('product.cover');
-                criteria.addAssociation('product.prices');
+                criteria.addAssociation('product.options.group');
+                criteria.addAssociation('product.parent');
                 criteria.addSorting(Criteria.sort('position', 'ASC'));
 
                 const result = await this.bundleProductRepository.search(criteria, Shopware.Context.api);
                 this.bundleProducts = Array.from(result);
             } catch (error) {
-                this.createNotificationError({
-                    message: `Error loading products: ${error.message}`
-                });
+                this.showError(`Error loading products: ${error.message}`);
                 this.bundleProducts = [];
             } finally {
                 this.isProductsLoading = false;
@@ -176,112 +193,151 @@ Component.register('digipercep-bundle-detail', {
         },
 
         async onProductSelectedFromDropdown(productId) {
-            if (!productId) {
-                return;
-            }
+            if (!productId) return;
 
             try {
-                const product = await this.productRepository.get(productId, Shopware.Context.api);
+                const criteria = new Criteria();
+                criteria.addAssociation('cover');
+                criteria.addAssociation('options.group');
 
-                const existsInBundle = this.bundleProducts.find(bp => bp.productId === productId);
-                if (existsInBundle) {
-                    this.createNotificationWarning({
-                        message: 'This product is already in the bundle'
-                    });
+                const product = await this.productRepository.get(productId, Shopware.Context.api, criteria);
+
+                if (this.isProductAlreadyInBundle(productId)) {
+                    this.showWarning('This product is already in the bundle');
                     this.selectedProductToAdd = null;
                     return;
                 }
 
-                const alreadySelected = this.selectedProductsForAdd.find(p => p.id === productId);
-                if (alreadySelected) {
-                    this.createNotificationWarning({
-                        message: 'This product is already selected'
-                    });
+                if (this.isProductAlreadySelected(productId)) {
+                    this.showWarning('This product is already selected');
                     this.selectedProductToAdd = null;
                     return;
                 }
 
                 this.selectedProductsForAdd.push(product);
                 this.selectedProductToAdd = null;
-
-                this.createNotificationInfo({
-                    message: `${product.name} added to selection`
-                });
-
+                this.showInfo(`${this.getProductDisplayName(product)} added to selection`);
             } catch (error) {
-                this.createNotificationError({
-                    message: `Error loading product: ${error.message}`
-                });
+                this.showError(`Error loading product: ${error.message}`);
             }
+        },
+
+        isProductAlreadyInBundle(productId) {
+            return this.bundleProducts.some(bp => bp.productId === productId);
+        },
+
+        isProductAlreadySelected(productId) {
+            return this.selectedProductsForAdd.some(p => p.id === productId);
+        },
+
+        getProductDisplayName(product) {
+            if (!product) return '';
+
+            const productNumber = product.productNumber ? `[${product.productNumber}]` : '';
+            const options = this.formatProductOptions(product.options);
+
+            if (product.parentId) {
+                const parentName = this.parentProductNames.get(product.parentId) || 'Product';
+                return `└─ ${parentName} ${productNumber}${options}`;
+            }
+
+            return `${product.name || 'Unknown Product'} ${productNumber}`;
+        },
+
+        getDropdownDisplayName(product) {
+            if (!product) return '';
+
+            let displayName = product.parentId
+                ? `└─ ${this.parentProductNames.get(product.parentId) || product.name || 'Variant'}`
+                : product.name || 'Unknown Product';
+
+            if (product.productNumber) {
+                displayName += ` [${product.productNumber}]`;
+            }
+
+            const options = this.formatProductOptions(product.options);
+            return displayName + options;
+        },
+
+        getBundleProductDisplayName(bundleProduct) {
+            if (!bundleProduct?.product) return 'Unknown Product';
+
+            const product = bundleProduct.product;
+
+            if (product.parentId) {
+                const parentName = product.parent?.name ||
+                    this.parentProductNames.get(product.parentId) ||
+                    product.name || 'Product';
+
+                const options = this.formatProductOptions(product.options, true);
+                return `${parentName}${options}`;
+            }
+
+            return product.name || 'Unknown Product';
+        },
+
+        formatProductOptions(options, includeGroupName = false) {
+            if (!options?.length) return '';
+
+            const optionValues = options
+                .map(option => {
+                    if (includeGroupName && option.group?.name) {
+                        return `${option.group.name}: ${option.name}`;
+                    }
+                    return option.name;
+                })
+                .filter(Boolean);
+
+            return optionValues.length ? ` (${optionValues.join(', ')})` : '';
         },
 
         removeFromSelection(product) {
             const index = this.selectedProductsForAdd.findIndex(p => p.id === product.id);
             if (index > -1) {
                 this.selectedProductsForAdd.splice(index, 1);
-                this.createNotificationInfo({
-                    message: `${product.name} removed from selection`
-                });
+                this.showInfo(`${this.getProductDisplayName(product)} removed from selection`);
             }
         },
 
         clearSelection() {
             this.selectedProductsForAdd = [];
             this.selectedProductToAdd = null;
-            this.createNotificationInfo({
-                message: 'Selection cleared'
-            });
+            this.showInfo('Selection cleared');
         },
 
         async addSelectedProducts() {
-            if (this.selectedProductsForAdd.length === 0) {
-                this.createNotificationWarning({
-                    message: 'No products selected'
-                });
+            if (!this.selectedProductsForAdd.length) {
+                this.showWarning('No products selected');
                 return;
             }
 
             if (!this.bundle.id) {
-                this.createNotificationError({
-                    message: 'Bundle must be saved before adding products'
-                });
+                this.showError('Bundle must be saved before adding products');
                 return;
             }
 
             this.isProductsLoading = true;
 
             try {
-                const bundleProductEntities = [];
                 const nextPosition = this.bundleProducts.length;
-
-                for (let i = 0; i < this.selectedProductsForAdd.length; i++) {
-                    const product = this.selectedProductsForAdd[i];
-
-                    const bundleProductEntity = this.bundleProductRepository.create(Shopware.Context.api);
-
-                    bundleProductEntity.bundleId = this.bundle.id;
-                    bundleProductEntity.productId = product.id;
-                    bundleProductEntity.quantity = 1;
-                    bundleProductEntity.position = nextPosition + i + 1;
-
-                    bundleProductEntities.push(bundleProductEntity);
-                }
+                const bundleProductEntities = this.selectedProductsForAdd.map((product, index) => {
+                    const entity = this.bundleProductRepository.create(Shopware.Context.api);
+                    entity.bundleId = this.bundle.id;
+                    entity.productId = product.id;
+                    entity.quantity = 1;
+                    entity.position = nextPosition + index + 1;
+                    return entity;
+                });
 
                 await this.bundleProductRepository.saveAll(bundleProductEntities, Shopware.Context.api);
 
-                this.createNotificationSuccess({
-                    message: `Successfully added ${bundleProductEntities.length} product(s) to bundle`
-                });
-
+                this.showSuccess(`Successfully added ${bundleProductEntities.length} product(s) to bundle`);
                 this.selectedProductsForAdd = [];
                 this.selectedProductToAdd = null;
 
                 await this.loadBundleProducts();
-
             } catch (error) {
-                this.createNotificationError({
-                    message: `Error adding products: ${error.message}`
-                });
+                this.showError(`Error adding products: ${error.message}`);
             } finally {
                 this.isProductsLoading = false;
             }
@@ -289,47 +345,32 @@ Component.register('digipercep-bundle-detail', {
 
         async removeProduct(bundleProduct) {
             if (!bundleProduct.id) {
-                this.createNotificationError({
-                    message: 'Cannot remove product: Invalid product ID'
-                });
+                this.showError('Cannot remove product: Invalid product ID');
                 return;
             }
 
             try {
                 await this.bundleProductRepository.delete(bundleProduct.id, Shopware.Context.api);
-
-                this.createNotificationSuccess({
-                    message: 'Product removed from bundle'
-                });
-
+                this.showSuccess('Product removed from bundle');
                 await this.loadBundleProducts();
             } catch (error) {
-                this.createNotificationError({
-                    message: `Error removing product: ${error.message}`
-                });
+                this.showError(`Error removing product: ${error.message}`);
             }
         },
 
         async onProductUpdate(item) {
             try {
                 await this.bundleProductRepository.save(item, Shopware.Context.api);
-
-                this.createNotificationSuccess({
-                    message: 'Product updated successfully'
-                });
+                this.showSuccess('Product updated successfully');
             } catch (error) {
-                this.createNotificationError({
-                    message: `Error updating product: ${error.message}`
-                });
+                this.showError(`Error updating product: ${error.message}`);
                 await this.loadBundleProducts();
             }
         },
 
         async onSave() {
-            if (!this.bundle.name || this.bundle.name.trim() === '') {
-                this.createNotificationError({
-                    message: 'Bundle name is required'
-                });
+            if (!this.bundle.name?.trim()) {
+                this.showError('Bundle name is required');
                 return;
             }
 
@@ -345,40 +386,40 @@ Component.register('digipercep-bundle-detail', {
                 };
 
                 if (this.isCreateMode) {
-                    const bundleEntity = this.bundleRepository.create(Shopware.Context.api);
-                    Object.assign(bundleEntity, bundleData);
-
-                    await this.bundleRepository.save(bundleEntity, Shopware.Context.api);
-
-                    this.bundle.id = bundleEntity.id;
-
-                    this.createNotificationSuccess({
-                        message: 'Bundle created successfully'
-                    });
-                    this.isSaveSuccessful = true;
-
-                    this.$router.push({
-                        name: 'digipercep.bundle.detail',
-                        params: { id: bundleEntity.id }
-                    });
+                    await this.createBundle(bundleData);
                 } else {
-                    const bundleEntity = await this.bundleRepository.get(this.bundle.id, Shopware.Context.api);
-                    Object.assign(bundleEntity, bundleData);
-
-                    await this.bundleRepository.save(bundleEntity, Shopware.Context.api);
-
-                    this.createNotificationSuccess({
-                        message: 'Bundle updated successfully'
-                    });
-                    this.isSaveSuccessful = true;
+                    await this.updateBundle(bundleData);
                 }
+
+                this.isSaveSuccessful = true;
             } catch (error) {
-                this.createNotificationError({
-                    message: `Save failed: ${error.message}`
-                });
+                this.showError(`Save failed: ${error.message}`);
             } finally {
                 this.isLoading = false;
             }
+        },
+
+        async createBundle(bundleData) {
+            const bundleEntity = this.bundleRepository.create(Shopware.Context.api);
+            Object.assign(bundleEntity, bundleData);
+
+            await this.bundleRepository.save(bundleEntity, Shopware.Context.api);
+
+            this.bundle.id = bundleEntity.id;
+            this.showSuccess('Bundle created successfully');
+
+            this.$router.push({
+                name: 'digipercep.bundle.detail',
+                params: { id: bundleEntity.id }
+            });
+        },
+
+        async updateBundle(bundleData) {
+            const bundleEntity = await this.bundleRepository.get(this.bundle.id, Shopware.Context.api);
+            Object.assign(bundleEntity, bundleData);
+
+            await this.bundleRepository.save(bundleEntity, Shopware.Context.api);
+            this.showSuccess('Bundle updated successfully');
         },
 
         saveFinish() {
@@ -387,6 +428,23 @@ Component.register('digipercep-bundle-detail', {
 
         onCancel() {
             this.$router.push({ name: 'digipercep.bundle.list' });
+        },
+
+        // Notification helpers for cleaner code
+        showError(message) {
+            this.createNotificationError({ message });
+        },
+
+        showWarning(message) {
+            this.createNotificationWarning({ message });
+        },
+
+        showSuccess(message) {
+            this.createNotificationSuccess({ message });
+        },
+
+        showInfo(message) {
+            this.createNotificationInfo({ message });
         }
     }
 });

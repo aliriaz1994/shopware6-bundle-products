@@ -1,4 +1,3 @@
-
 {% block digipercep_bundle_detail %}
     <sw-page class="digipercep-bundle-detail">
         <template #smart-bar-header>
@@ -67,27 +66,33 @@
 
                 <!-- Bundle Products Card -->
                 <sw-card title="Bundle Products" :isLoading="isProductsLoading">
-                    <div v-if="!isCreateMode" class="sw-card__content">
-                        <!-- Add Products Section -->
+                    <!-- Create Mode Notice -->
+                    <div v-if="isCreateMode" class="sw-card__content">
+                        <sw-alert variant="info">
+                            Please save the bundle first before adding products.
+                        </sw-alert>
+                    </div>
+
+                    <!-- Product Management -->
+                    <div v-else class="sw-card__content">
                         <sw-alert variant="info">
                             <p>Please select all products that should be offered within the bundle. Depending on the plugin configuration, any duplicate parent product will be automatically removed from the bundle. For variant products, you can select either the parent or a specific variant. If you select the parent, the customer can select a variant.</p>
                         </sw-alert>
 
-                        <!-- Product Selection Area -->
+                        <!-- Product Selection -->
                         <div class="product-selection-area">
-                            <!-- Product Selector -->
                             <sw-entity-single-select
                                     entity="product"
                                     v-model:value="selectedProductToAdd"
                                     label="Select product"
                                     placeholder="Please select product..."
                                     :criteria="productCriteria"
-                                    labelProperty="name"
+                                    :labelCallback="getDropdownDisplayName"
                                     valueProperty="id"
                                     @update:value="onProductSelectedFromDropdown">
                             </sw-entity-single-select>
 
-                            <!-- Selected Products for Adding -->
+                            <!-- Selected Products Preview -->
                             <div v-if="selectedProductsForAdd.length > 0" class="selected-products-preview">
                                 <h4>Selected Products ({{ selectedProductsForAdd.length }}):</h4>
                                 <div class="selected-products-list">
@@ -95,7 +100,7 @@
                                             v-for="product in selectedProductsForAdd"
                                             :key="product.id"
                                             class="selected-product-item">
-                                        <span>{{ product.name }}</span>
+                                        <span>{{ getProductDisplayName(product) }}</span>
                                         <sw-button
                                                 size="x-small"
                                                 variant="ghost"
@@ -124,7 +129,7 @@
                             </div>
                         </div>
 
-                        <!-- Products List -->
+                        <!-- Bundle Products Grid -->
                         <div v-if="bundleProducts && bundleProducts.length > 0" class="bundle-products-list">
                             <h4>Bundle Products ({{ bundleProducts.length }}):</h4>
                             <sw-data-grid
@@ -138,7 +143,7 @@
 
                                 <template #column-product="{ item }">
                                     <div class="product-info">
-                                        <span>{{ item.product ? item.product.name : 'Unknown Product' }}</span>
+                                        <span>{{ getBundleProductDisplayName(item) }}</span>
                                     </div>
                                 </template>
 
@@ -168,18 +173,13 @@
                             </sw-data-grid>
                         </div>
 
+                        <!-- Empty State -->
                         <sw-empty-state
                                 v-else-if="!isProductsLoading"
                                 title="No products added"
                                 icon="default-package-closed"
                                 description="Add products to this bundle using the selector above">
                         </sw-empty-state>
-                    </div>
-
-                    <div v-else class="sw-card__content">
-                        <sw-alert variant="info">
-                            Please save the bundle first before adding products.
-                        </sw-alert>
                     </div>
                 </sw-card>
             </sw-card-view>
