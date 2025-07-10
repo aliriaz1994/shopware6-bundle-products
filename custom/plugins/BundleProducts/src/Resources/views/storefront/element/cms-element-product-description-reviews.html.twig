@@ -233,11 +233,6 @@
                                         <span class="price-label">Unit Price:</span>
                                         <span class="price-value">€{{ originalPrice|number_format(2, '.', ',') }}*</span>
                                     </div>
-                                    {% if page.product.description %}
-                                        <div class="product-short-description">
-                                            {{ page.product.description|length > 100 ? page.product.description|slice(0, 100) ~ '...' : page.product.description }}
-                                        </div>
-                                    {% endif %}
                                 </div>
                             </div>
 
@@ -282,11 +277,6 @@
                                                         <span class="price-value">Price on request</span>
                                                     {% endif %}
                                                 </div>
-                                                {% if bundleProduct.product.description %}
-                                                    <div class="product-short-description">
-                                                        {{ bundleProduct.product.description|length > 100 ? bundleProduct.product.description|slice(0, 100) ~ '...' : bundleProduct.product.description }}
-                                                    </div>
-                                                {% endif %}
                                             </div>
                                         </div>
                                     {% endif %}
