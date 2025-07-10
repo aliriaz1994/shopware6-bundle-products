@@ -17,6 +17,7 @@
         <!-- Services -->
         <service id="DigiPercep\BundleProducts\Service\BundleService">
             <argument type="service" id="digipercep_bundle.repository"/>
+            <argument type="service" id="product.repository"/>
         </service>
 
         <service id="DigiPercep\BundleProducts\Service\BundleSyncService">
@@ -77,6 +78,7 @@
             <argument type="service" id="DigiPercep\BundleProducts\Service\CustomFieldBundleService"/>
             <argument type="service" id="digipercep_bundle.repository"/>
             <argument type="service" id="sales_channel.product.repository"/>
+            <argument type="service" id="product.repository"/>
             <tag name="kernel.event_subscriber"/>
         </service>
 

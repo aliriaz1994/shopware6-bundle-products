@@ -10,7 +10,7 @@
 
         {% for slotName, assignment in bundleAssignments %}
             {% if assignment and assignment.bundle and assignment.bundle.active %}
-                {# NEW CHECK: Only include bundles that have bundle products assigned #}
+                {# Only include bundles that have bundle products assigned #}
                 {% set hasValidBundleProducts = false %}
                 {% if assignment.bundle.bundleProducts is defined and assignment.bundle.bundleProducts is iterable %}
                     {% for bundleProduct in assignment.bundle.bundleProducts %}
@@ -41,7 +41,7 @@
                     {% set bundle = assignment.bundle %}
                     {% set slotName = bundleInfo.slot %}
 
-                    {# CLEAN BUNDLE CONTAINER - Remove all old digipercep attributes #}
+                    {# Bundle container #}
                     <div class="new-bundle-container"
                          id="bundle-container-{{ bundle.id }}"
                          data-bundle-id="{{ bundle.id }}">
@@ -59,14 +59,14 @@
                                                     <span class="product-image-link is-minimal image">
                                                         {% if page.product.cover and page.product.cover.media %}
                                                             <img src="{{ page.product.cover.media.url }}"
-                                                                 alt="{{ page.product.name }}"
-                                                                 title="{{ page.product.name }}"
+                                                                 alt="{% if page.product.parentId and page.product.extensions.parentProduct %}{{ page.product.extensions.parentProduct.name }}{% if page.product.options|length > 0 %} ({% for option in page.product.options %}{% if option.group and option.group.name %}{{ option.group.name }}: {% endif %}{{ option.name }}{% if not loop.last %}, {% endif %}{% endfor %}){% endif %}{% else %}{{ page.product.name }}{% endif %}"
+                                                                 title="{% if page.product.parentId and page.product.extensions.parentProduct %}{{ page.product.extensions.parentProduct.name }}{% if page.product.options|length > 0 %} ({% for option in page.product.options %}{% if option.group and option.group.name %}{{ option.group.name }}: {% endif %}{{ option.name }}{% if not loop.last %}, {% endif %}{% endfor %}){% endif %}{% else %}{{ page.product.name }}{% endif %}"
                                                                  class="product-image is-minimal"
                                                                  loading="lazy">
                                                         {% elseif page.product.media and page.product.media|length > 0 %}
                                                             <img src="{{ page.product.media.first.url }}"
-                                                                 alt="{{ page.product.name }}"
-                                                                 title="{{ page.product.name }}"
+                                                                 alt="{% if page.product.parentId and page.product.extensions.parentProduct %}{{ page.product.extensions.parentProduct.name }}{% if page.product.options|length > 0 %} ({% for option in page.product.options %}{% if option.group and option.group.name %}{{ option.group.name }}: {% endif %}{{ option.name }}{% if not loop.last %}, {% endif %}{% endfor %}){% endif %}{% else %}{{ page.product.name }}{% endif %}"
+                                                                 title="{% if page.product.parentId and page.product.extensions.parentProduct %}{{ page.product.extensions.parentProduct.name }}{% if page.product.options|length > 0 %} ({% for option in page.product.options %}{% if option.group and option.group.name %}{{ option.group.name }}: {% endif %}{{ option.name }}{% if not loop.last %}, {% endif %}{% endfor %}){% endif %}{% else %}{{ page.product.name }}{% endif %}"
                                                                  class="product-image is-minimal"
                                                                  loading="lazy">
                                                         {% else %}
@@ -96,14 +96,14 @@
                                                                 <span class="product-image-link is-minimal image">
                                                                     {% if bundleProduct.product.cover and bundleProduct.product.cover.media %}
                                                                         <img src="{{ bundleProduct.product.cover.media.url }}"
-                                                                             alt="{{ bundleProduct.product.name }}"
-                                                                             title="{{ bundleProduct.product.name }}"
+                                                                             alt="{% if bundleProduct.product.parentId and bundleProduct.product.extensions.parentProduct %}{{ bundleProduct.product.extensions.parentProduct.name }}{% if bundleProduct.product.options|length > 0 %} ({% for option in bundleProduct.product.options %}{% if option.group and option.group.name %}{{ option.group.name }}: {% endif %}{{ option.name }}{% if not loop.last %}, {% endif %}{% endfor %}){% endif %}{% else %}{{ bundleProduct.product.name }}{% endif %}"
+                                                                             title="{% if bundleProduct.product.parentId and bundleProduct.product.extensions.parentProduct %}{{ bundleProduct.product.extensions.parentProduct.name }}{% if bundleProduct.product.options|length > 0 %} ({% for option in bundleProduct.product.options %}{% if option.group and option.group.name %}{{ option.group.name }}: {% endif %}{{ option.name }}{% if not loop.last %}, {% endif %}{% endfor %}){% endif %}{% else %}{{ bundleProduct.product.name }}{% endif %}"
                                                                              class="product-image is-minimal"
                                                                              loading="lazy">
                                                                     {% elseif bundleProduct.product.media and bundleProduct.product.media|length > 0 %}
                                                                         <img src="{{ bundleProduct.product.media.first.url }}"
-                                                                             alt="{{ bundleProduct.product.name }}"
-                                                                             title="{{ bundleProduct.product.name }}"
+                                                                             alt="{% if bundleProduct.product.parentId and bundleProduct.product.extensions.parentProduct %}{{ bundleProduct.product.extensions.parentProduct.name }}{% if bundleProduct.product.options|length > 0 %} ({% for option in bundleProduct.product.options %}{% if option.group and option.group.name %}{{ option.group.name }}: {% endif %}{{ option.name }}{% if not loop.last %}, {% endif %}{% endfor %}){% endif %}{% else %}{{ bundleProduct.product.name }}{% endif %}"
+                                                                             title="{% if bundleProduct.product.parentId and bundleProduct.product.extensions.parentProduct %}{{ bundleProduct.product.extensions.parentProduct.name }}{% if bundleProduct.product.options|length > 0 %} ({% for option in bundleProduct.product.options %}{% if option.group and option.group.name %}{{ option.group.name }}: {% endif %}{{ option.name }}{% if not loop.last %}, {% endif %}{% endfor %}){% endif %}{% else %}{{ bundleProduct.product.name }}{% endif %}"
                                                                              class="product-image is-minimal"
                                                                              loading="lazy">
                                                                     {% else %}
@@ -128,7 +128,6 @@
 
                             {# Right side - Pricing and Actions #}
                             <div class="actions">
-                                {# CRITICAL FIX: Add data-bundle-form attribute for JavaScript detection #}
                                 <form action="{{ path('frontend.bundle.add-to-cart') }}"
                                       method="post"
                                       class="buy-widget bundle-main-form new-bundle-form"
@@ -136,7 +135,6 @@
                                     {% if csrf is defined and csrf.token is defined %}
                                         <input type="hidden" name="_csrf_token" value="{{ csrf.token }}">
                                     {% endif %}
-                                    {# REMOVE redirectTo to prevent page redirect #}
                                     <input type="hidden" name="bundle-id" value="{{ bundle.id }}">
                                     <input type="hidden" name="bundle-product-id" value="{{ page.product.id }}">
                                     <input type="hidden" name="bundle-source" value="custom_field">
@@ -206,8 +204,8 @@
                                 <div class="product-image-section">
                                     {% if page.product.cover and page.product.cover.media %}
                                         <img src="{{ page.product.cover.media.url }}"
-                                             alt="{{ page.product.name }}"
-                                             title="{{ page.product.name }}"
+                                             alt="{% if page.product.parentId and page.product.extensions.parentProduct %}{{ page.product.extensions.parentProduct.name }}{% if page.product.options|length > 0 %} ({% for option in page.product.options %}{% if option.group and option.group.name %}{{ option.group.name }}: {% endif %}{{ option.name }}{% if not loop.last %}, {% endif %}{% endfor %}){% endif %}{% else %}{{ page.product.name }}{% endif %}"
+                                             title="{% if page.product.parentId and page.product.extensions.parentProduct %}{{ page.product.extensions.parentProduct.name }}{% if page.product.options|length > 0 %} ({% for option in page.product.options %}{% if option.group and option.group.name %}{{ option.group.name }}: {% endif %}{{ option.name }}{% if not loop.last %}, {% endif %}{% endfor %}){% endif %}{% else %}{{ page.product.name }}{% endif %}"
                                              class="product-detail-image"
                                              loading="lazy">
                                     {% else %}
@@ -225,9 +223,32 @@
                                     <div class="product-badge current-product">Current Product</div>
                                     <h5 class="product-name">
                                         <a href="{{ seoUrl('frontend.detail.page', {'productId': page.product.id}) }}">
-                                            {{ page.product.name }}
+                                            {% if page.product.parentId and page.product.extensions.parentProduct %}
+                                                {{ page.product.extensions.parentProduct.name }}
+                                                {% if page.product.options is defined and page.product.options|length > 0 %}
+                                                    ({% for option in page.product.options %}
+                                                    {% if option.group and option.group.name %}{{ option.group.name }}: {% endif %}{{ option.name }}{% if not loop.last %}, {% endif %}
+                                                {% endfor %})
+                                                {% endif %}
+                                            {% else %}
+                                                {{ page.product.name }}
+                                            {% endif %}
                                         </a>
                                     </h5>
+
+                                    {# Show variant options if available #}
+                                    {% if page.product.parentId and page.product.options is defined and page.product.options|length > 0 %}
+                                        <div class="product-variant-info">
+                                            {% for option in page.product.options %}
+                                                {% if option.group and option.group.name and option.name %}
+                                                    <span class="variant-option">
+                                                        <strong>{{ option.group.name }}:</strong> {{ option.name }}
+                                                    </span>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+
                                     <div class="product-quantity">Quantity: <strong>1x</strong></div>
                                     <div class="product-price">
                                         <span class="price-label">Unit Price:</span>
@@ -244,8 +265,8 @@
                                             <div class="product-image-section">
                                                 {% if bundleProduct.product.cover and bundleProduct.product.cover.media %}
                                                     <img src="{{ bundleProduct.product.cover.media.url }}"
-                                                         alt="{{ bundleProduct.product.name }}"
-                                                         title="{{ bundleProduct.product.name }}"
+                                                         alt="{% if bundleProduct.product.parentId and bundleProduct.product.extensions.parentProduct %}{{ bundleProduct.product.extensions.parentProduct.name }}{% if bundleProduct.product.options|length > 0 %} ({% for option in bundleProduct.product.options %}{% if option.group and option.group.name %}{{ option.group.name }}: {% endif %}{{ option.name }}{% if not loop.last %}, {% endif %}{% endfor %}){% endif %}{% else %}{{ bundleProduct.product.name }}{% endif %}"
+                                                         title="{% if bundleProduct.product.parentId and bundleProduct.product.extensions.parentProduct %}{{ bundleProduct.product.extensions.parentProduct.name }}{% if bundleProduct.product.options|length > 0 %} ({% for option in bundleProduct.product.options %}{% if option.group and option.group.name %}{{ option.group.name }}: {% endif %}{{ option.name }}{% if not loop.last %}, {% endif %}{% endfor %}){% endif %}{% else %}{{ bundleProduct.product.name }}{% endif %}"
                                                          class="product-detail-image"
                                                          loading="lazy">
                                                 {% else %}
@@ -263,9 +284,32 @@
                                                 <div class="product-badge bundle-product">Bundle Product</div>
                                                 <h5 class="product-name">
                                                     <a href="{{ seoUrl('frontend.detail.page', {'productId': bundleProduct.product.id}) }}">
-                                                        {{ bundleProduct.product.name }}
+                                                        {% if bundleProduct.product.parentId and bundleProduct.product.extensions.parentProduct %}
+                                                            {{ bundleProduct.product.extensions.parentProduct.name }}
+                                                            {% if bundleProduct.product.options is defined and bundleProduct.product.options|length > 0 %}
+                                                                ({% for option in bundleProduct.product.options %}
+                                                                {% if option.group and option.group.name %}{{ option.group.name }}: {% endif %}{{ option.name }}{% if not loop.last %}, {% endif %}
+                                                            {% endfor %})
+                                                            {% endif %}
+                                                        {% else %}
+                                                            {{ bundleProduct.product.name|default('Product Name Missing') }}
+                                                        {% endif %}
                                                     </a>
                                                 </h5>
+
+                                                {# Show variant options if available #}
+                                                {% if bundleProduct.product.parentId and bundleProduct.product.options is defined and bundleProduct.product.options|length > 0 %}
+                                                    <div class="product-variant-info">
+                                                        {% for option in bundleProduct.product.options %}
+                                                            {% if option.group and option.group.name and option.name %}
+                                                                <span class="variant-option">
+                                                                    <strong>{{ option.group.name }}:</strong> {{ option.name }}
+                                                                </span>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+
                                                 <div class="product-quantity">Quantity: <strong>{{ bundleProduct.quantity|default(1) }}x</strong></div>
                                                 <div class="product-price">
                                                     <span class="price-label">Unit Price:</span>

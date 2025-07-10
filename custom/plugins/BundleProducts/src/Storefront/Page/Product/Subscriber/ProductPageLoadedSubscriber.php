@@ -19,7 +19,8 @@ class ProductPageLoadedSubscriber implements EventSubscriberInterface
         private readonly BundleService $bundleService,
         private readonly CustomFieldBundleService $customFieldBundleService,
         private readonly EntityRepository $bundleRepository,
-        private readonly SalesChannelRepository $salesChannelProductRepository
+        private readonly SalesChannelRepository $salesChannelProductRepository,
+        private readonly EntityRepository $productRepository
     ) {
     }
 
@@ -110,6 +111,7 @@ class ProductPageLoadedSubscriber implements EventSubscriberInterface
         $productCriteria->addFilter(new ProductAvailableFilter($salesChannelContext->getSalesChannel()->getId()));
         $productCriteria->addAssociation('cover.media');
         $productCriteria->addAssociation('media');
+        $productCriteria->addAssociation('options.group');
 
         // Load products from sales channel to get calculated prices
         $products = $this->salesChannelProductRepository->search(
@@ -119,15 +121,43 @@ class ProductPageLoadedSubscriber implements EventSubscriberInterface
 
         // Create a map of products by ID for easy lookup
         $productsById = [];
+        $parentIds = [];
+
         foreach ($products->getEntities() as $product) {
             $productsById[$product->getId()] = $product;
+
+            // Collect parent IDs for variants
+            if ($product->getParentId()) {
+                $parentIds[] = $product->getParentId();
+            }
         }
 
-        // Update bundle products with the loaded product data (including calculated prices)
+        // Load parent products separately using the admin repository
+        // (because sales channel repository blocks parent associations)
+        $parentProducts = [];
+        if (!empty($parentIds)) {
+            $parentCriteria = new Criteria(array_unique($parentIds));
+            $parentCriteria->addAssociation('cover.media');
+            $parentCriteria->addAssociation('media');
+
+            $parentResult = $this->productRepository->search($parentCriteria, $salesChannelContext->getContext());
+            foreach ($parentResult->getEntities() as $parent) {
+                $parentProducts[$parent->getId()] = $parent;
+            }
+        }
+
+        // Update bundle products with the loaded product data and parent information
         foreach ($bundle->getBundleProducts() as $bundleProduct) {
             $productId = $bundleProduct->getProductId();
             if (isset($productsById[$productId])) {
-                $bundleProduct->setProduct($productsById[$productId]);
+                $product = $productsById[$productId];
+
+                // If this is a variant and we have the parent, add it as an extension
+                if ($product->getParentId() && isset($parentProducts[$product->getParentId()])) {
+                    $product->addExtension('parentProduct', $parentProducts[$product->getParentId()]);
+                }
+
+                $bundleProduct->setProduct($product);
             }
         }
 
