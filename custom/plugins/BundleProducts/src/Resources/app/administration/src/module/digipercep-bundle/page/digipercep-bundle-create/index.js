@@ -57,10 +57,17 @@ Component.register('digipercep-bundle-create', {
                 const result = await response.json();
 
                 if (response.ok) {
+                    const bundleId = result.data.id;
                     this.createNotificationSuccess({
                         message: this.$tc('digipercep-bundle.create.messageSaveSuccess')
                     });
                     this.isSaveSuccessful = true;
+
+                    // Navigate to the edit page of the saved bundle
+                    this.$router.push({
+                        name: 'digipercep.bundle.detail',
+                        params: { id: bundleId }
+                    });
                 } else {
                     throw new Error(result.errors?.[0]?.detail || 'Unknown error');
                 }
